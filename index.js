@@ -1,62 +1,42 @@
-// index.js
-const path = require('path');
+require('dotenv').config()
+// puppeteer-extra is a drop-in replacement for puppeteer,
+// it augments the installed puppeteer with plugin functionality
 const puppeteer = require('puppeteer-extra');
+
+// add stealth plugin and use defaults (all evasion techniques)
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-const { performLoginWithGoogle } = require('./src/flows/google-login');
+const {performLoginWithGoogle} = require("./src/flows/google-login.js")
 
-// puppeteer.use(StealthPlugin());
+puppeteer.use(StealthPlugin());
 
-async function main() {
-  let browser = null;
-  let page = null;
+const waitForTimeout = (ms) => {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+};
 
+async function openGPT() {
+  let browser = null; // Define browser outside try block for potential cleanup
   try {
-    console.log('Launching browser with your Chrome Profile 1…');
+    console.log('Launching browser...');
+    browser = await puppeteer.launch({ headless: false });
 
-    // Build the absolute path to your Profile 1 folder
-    const userDataDir = path.join(
-      process.env.USERPROFILE,
-      'AppData',
-      'Local',
-      'Google',
-      'Chrome',
-      'User Data',
-      'Profile 1'
-    );
+    console.log('Opening new page...');
+    const page = await browser.newPage();
 
-    browser = await puppeteer.launch({
-      headless: false,
-      args: [
-        `--user-data-dir=${userDataDir}`,      // Use your existing profile
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-blink-features=AutomationControlled',
-      ]
-      // NOTE: removed extension flags; no extensions will be loaded
-    });
-
-    console.log('Opening a fresh page…');
-    page = await browser.newPage();
-
-    // Use chatgpt.com as the entry point
     console.log('Navigating to OpenAI login...');
-    await page.goto('https://chatgpt.com', { waitUntil: 'networkidle0' });  
+    await page.goto('https://chatgpt.com');
 
-    // Now run your Google login flow
-    await performLoginWithGoogle(page);
-
-    console.log('All tasks done. ✨');
+    performLoginWithGoogle(page);
 
   } catch (error) {
-    console.error('An error occurred in the main process:', error);
-    if (page) {
-      console.error('Page URL at error time:', page.url());
-    }
+    console.error('An error occurred:', error);
   } finally {
-    console.log('Script finished.');
-    // optionally
-    // if (browser) await browser.close();
+    if (browser) {
+        // Attempt to close the browser even if an error occurred
+        // await browser.close();
+      }
   }
 }
 
-main();
+// Call the function to execute the script
+openGPT();
+
