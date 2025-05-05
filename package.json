@@ -1,0 +1,17 @@
+{
+  "name": "chatgpt-api",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "roxylius",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "chatgpt": "^5.2.5",
+    "puppeteer": "^24.8.0",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
+  }
+}
