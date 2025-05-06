@@ -8,12 +8,18 @@ const { waitForTimeout, extractParagraphContent } = require("../utils/helpers");
  * polls the streaming response until it stabilizes, and returns the final text.
  *
  * @param {import('puppeteer').Page} page    - Puppeteer Page instance
- * @param {{ reason: boolean, search: boolean }} options - Flags to enable modes
+ * @param {{ reason: boolean, search: boolean, threadId: string | null  }}  options - Configuration flags: 1) `reason` to enable Reason mode, 2) `search` to enable Search mode, and 3) optional `threadId` to reuse an existing conversation thread
  * @param {string} prompt                    - The user’s prompt
  * @returns {Promise<string|null>}           - The completed response text, or null if none received
  */
 async function promptWithOptions(page, options, prompt) {
-    const { reason, search } = options;
+    const { reason, search, threadId } = options;
+
+    // Navigate: reuse existing thread or start fresh
+    const base = 'https://chatgpt.com';
+    const url = threadId ? `${base}/c/${threadId}` : base;
+    console.log(`🌐 Loading URL: ${url}`);
+    await page.goto(url);
 
     // Toggle modes if requested
     if (reason) {
@@ -81,7 +87,16 @@ async function promptWithOptions(page, options, prompt) {
     } else {
         console.log('🎯 Cleaned response:', cleaned);
     }
-    return cleaned;  // or return null up the chain
+
+    // After the prompt, re-capture the actual thread from the URL
+    const match = page.url().match(/\/c\/([0-9a-f\-]+)/);
+    const newThreadId = match ? match[1] : null;
+    console.log('Resolved threadId:', newThreadId);
+
+    return {
+        threadId: newThreadId,
+        response: cleaned
+    };
 }
 
 module.exports = { promptWithOptions };

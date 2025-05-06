@@ -81,21 +81,26 @@ async function openGPT() {
         }
 
         // -------------------------------------------------------------------------
-        // 5) Further automation can continue here (e.g., sending prompts, scraping
-        //    results, etc.)
+        // 5) Send prompt with reuse of existing conversation thread (if any)
+        //
+        // We pass prompt + optional modes (`search`, `reason`) and the threadId.
+        // ChatGPT will continue the conversation in the specified thread if provided.
         // -------------------------------------------------------------------------
-        const prompt = "based on researching forbes data who are the top 5 richest person in india as of may 2025";
+        const prompt = "based on researching forbes data who are the top 10 richest person in australia as of may 2025";
         const options = {
             search: true,
-            reason: false
+            reason: false,
+            threadId: '681a6cba-c0fc-8004-977c-f34adf806988'
         }
-        const response = await promptWithOptions(page, options, prompt);
-        if (response === null) {
+        const responseObject = await promptWithOptions(page, options, prompt);
+        if (responseObject === null) {
             console.error('❌ No response or valid paragraph response received from ChatGPT.');
             // handle error: retry, exit, default value, etc.
         } else {
-            console.log('ChatGPT replied:', response);
-            // proceed with valid response
+            const { threadId: returnedThreadId, response } = responseObject;
+            console.log('📬 ChatGPT replied:', response);
+            console.log('📌 Conversation ID:', returnedThreadId);
+            // proceed with valid response and potentially save threadId for next run
         }
 
 
@@ -115,7 +120,7 @@ async function openGPT() {
         // To close it programmatically, uncomment the line below.
         // -------------------------------------------------------------------------
         console.log('🏁 Script finished.');
-        // await browser?.close();
+        await browser?.close();
     }
 }
 
