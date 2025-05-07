@@ -86,7 +86,7 @@ async function openGPT() {
         // We pass prompt + optional modes (`search`, `reason`) and the threadId.
         // ChatGPT will continue the conversation in the specified thread if provided.
         // -------------------------------------------------------------------------
-        const prompt = "based on researching forbes data who are the top 10 richest person in australia as of may 2025";
+        const prompt = "based on researching forbes data who are the top 10 richest person in vietnam as of may 2025";
         const options = {
             search: true,
             reason: false,

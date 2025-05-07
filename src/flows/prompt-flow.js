@@ -43,7 +43,7 @@ async function promptWithOptions(page, options, prompt) {
 
     // Type and submit prompt
     console.log('✏️ Typing and submitting prompt...');
-    const promptContext = `return the response to the below prompt in a single string '' wrapped in a <p>{response}</p> tag with no parent div in output. Prompt as follows: `;
+    const promptContext = `return the response to the below prompt in a single string '' wrapped in a <p>{response}</p> tag with no formatting and no parent div in output. Prompt as follows: `;
     await editor.type(promptContext + prompt);
     await editor.press('Enter');
 
