@@ -1,6 +1,6 @@
 const express = require('express');
-const {performLoginWithBasicAuth} = require('../src/flows/basic-login');
-const { getPage } = require('../src/services/puppeteer-services');
+const {performLoginWithBasicAuth} = require('../flows/basic-login');
+const { getPage } = require('../services/puppeteer-services');
 
 //handle login Routes
 const loginRouter = express.Router();

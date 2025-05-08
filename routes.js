@@ -3,8 +3,8 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 
 //express routers to handle route
-const promptRouter = require('./views/prompt');
-const loginRouter = require('./views/login');
+const promptRouter = require('./src/views/prompt');
+const loginRouter = require('./src/views/login');
 
 const app = express();
 
