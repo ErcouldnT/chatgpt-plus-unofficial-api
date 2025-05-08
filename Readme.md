@@ -2,7 +2,6 @@
 
 > A developer-focused Node.js + Puppeteer-powered backend that exposes an unofficial OpenAI ChatGPT API by automating browser interaction with chat.openai.com—ideal for local testing, prompt chaining, and AI chatbot exploration without using official API keys.
 
-
 ## 🚀 Why This Project?
 
 While OpenAI’s official APIs are powerful, they come with rate limits, cost barriers, and limited conversation thread support. This project enables developers to:
@@ -77,7 +76,8 @@ Run a test interaction:
 npm run test
 ```
 
- Test workflow:
+Test workflow:
+
 > 🌐Launch Chrome -> 📁Load Chrome-user-data -> 🔐Login -> ✉️Send Prompt -> ⏳Poll Response -> 📄Extract Text -> 💬Return JSON
 
 ## 🔁 API Endpoints
@@ -131,6 +131,7 @@ Sample Response:
 > **Note:** Response times may vary based on prompt complexity and ChatGPT’s server load. Parsing may occasionally be inconsistent, particularly in Reason mode.
 
 ## 📂 Key Components & Dictory Tree
+
 ```
 .
 ├── chrome-user-data/      # Persists browser session data (cookies, localStorage)
@@ -156,7 +157,6 @@ Sample Response:
 └── README.md              # This file
 ```
 
-
 ## 🔧 Planned Features
 
 - Add markdown/HTML parser for formatted output
@@ -165,37 +165,31 @@ Sample Response:
 - Signup support
 - Enhanced thread context management
 
-
 ## ⚠️ Known Issues
 
 - Small viewport may trigger mobile view and change behavior.
 - “Reason” mode writes to alternate DOM nodes.
 - Some long responses split across multiple elements.
 
-
 ## 📊 Workflow Diagram
 
 graph TD
-A\[Client Request] -->|/api/prompt| B\[Express Server]
+A[Client Request] -->|/api/prompt| B[Express Server]
 B --> C{Check Auth?}
-C -->|Yes| D\[Use existing session]
-C -->|No| E\[Run Login Flow]
-E --> F\[Persist Session]
-D --> G\[Load ChatGPT Page]
-G --> H\[Inject Prompt]
-H --> I\[Poll for Response]
-I --> J\[Extract Response HTML/Text]
-J --> K\[Return JSON to Client]
-
-
+C -->|Yes| D[Use existing session]
+C -->|No| E[Run Login Flow]
+E --> F[Persist Session]
+F --> G[Load ChatGPT Page]
+D --> G
+G --> H[Inject Prompt]
+H --> I[Poll for Response]
+I --> J[Extract Response HTML/Text]
+J --> K[Return JSON to Client]
 
 ## 👩‍💻 Author
 
 Developed with ☕ by Roxylius
 
-
-
 ## 📄 License
 
 ISC License
-
