@@ -7,58 +7,71 @@
  * @returns {Promise<void>} Resolves after the timeout completes.
  */
 const waitForTimeout = (ms) => {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-  };
-  
-  /**
-   * Checks whether the ChatGPT web session is already authenticated.
-   *
-   * This helper performs two checks:
-   *  1. Verifies if `localStorage.oai-did` exists, indicating a client-side
-   *     authenticated user ID post-login.
-   *  2. Inspects cookies for the presence of the `__Secure-next-auth.session-token`
-   *     cookie, which NextAuth.js sets upon successful server-side authentication.
-   *
-   * @param {import('puppeteer').Page} page - The Puppeteer Page instance.
-   * @returns {Promise<boolean>} `true` if an authenticated session is detected; otherwise `false`.
-   */
-  async function isChatGPTLoggedIn(page) {
-    // 1) Check for client-side user ID in localStorage
-    const hasDid = await page.evaluate(() => {
-      return !!window.localStorage.getItem('oai-did');
-    });
-    if (hasDid) return true;
-  
-    // 2) Check for NextAuth session cookie
-    const cookies = await page.cookies();
-    return cookies.some(c => c.name === '__Secure-next-auth.session-token');
-  }
+  return new Promise((resolve) => setTimeout(resolve, ms));
+};
 
 
-  /**
- * Given a raw response string that contains a literal <p>…</p>,
- * extract the inner content and trim off one pair of matching quotes.
+/**
+ * Checks whether the ChatGPT web session is authenticated by querying
+ * the official `/api/auth/session` endpoint.
  *
- * @param {string} raw
- * @returns {string|null}  cleaned text or null if nothing extracted
+ * This method avoids relying on fragile client-side checks (like localStorage or cookies)
+ * and instead performs a direct HTTP GET request using Puppeteer's built-in request API.
+ *
+ * OpenAI's `/api/auth/session` endpoint responds with:
+ *  - A populated JSON object if the user is authenticated (contains `user`, `account`, etc.).
+ *  - An empty object `{}` if the user is not logged in.
+ *
+ * @param {import('puppeteer').Page} page - The Puppeteer Page instance.
+ * @returns {Promise<boolean>} `true` if the user is logged in; otherwise `false`.
  */
-function extractParagraphContent(raw) {
-    // 1) Find the first <p>…</p> block
-    const match = raw.match(/<p>([\s\S]*?)<\/p>/i);
-    if (!match) return null;           // no <p>…</p> found
-  
-    let inner = match[1].trim();       // what's between the tags
-  
-    // 2) Remove exactly one matching pair of quotes around it
-    inner = inner.replace(/^(['"])([\s\S]*)\1$/, '$2');
-  
-    return inner;
+async function isChatGPTLoggedIn(page) {
+
+  // Ensure we're on the correct ChatGPT host
+  if (!page.url().startsWith('https://chatgpt.com')) {
+    await page.goto('https://chatgpt.com');
   }
-  
-  
-  module.exports = {
-    waitForTimeout,
-    isChatGPTLoggedIn,
-    extractParagraphContent
-  };
-  
+
+  // Perform fetch inside browser context since `page.request` is not available in Puppeteer
+  const session = await page.evaluate(async () => {
+    try {
+      // Request current auth session; includes cookies for proper context
+      const res = await fetch('https://chatgpt.com/api/auth/session', { credentials: 'include' });
+      if (!res.ok) return {};          // Non-200 → no session
+      return await res.json();         // Parsed session object
+    } catch {
+      return {};                       // Network/error → treat as not logged in
+    }
+  });
+  // Non-empty object indicates authenticated session
+  return session && Object.keys(session).length > 0;
+}
+
+
+
+/**
+* Given a raw response string that contains a literal <p>…</p>,
+* extract the inner content and trim off one pair of matching quotes.
+*
+* @param {string} raw
+* @returns {string|null}  cleaned text or null if nothing extracted
+*/
+function extractParagraphContent(raw) {
+  // 1) Find the first <p>…</p> block
+  const match = raw.match(/<p>([\s\S]*?)<\/p>/i);
+  if (!match) return null;           // no <p>…</p> found
+
+  let inner = match[1].trim();       // what's between the tags
+
+  // 2) Remove exactly one matching pair of quotes around it
+  inner = inner.replace(/^(['"])([\s\S]*)\1$/, '$2');
+
+  return inner;
+}
+
+
+module.exports = {
+  waitForTimeout,
+  isChatGPTLoggedIn,
+  extractParagraphContent
+};

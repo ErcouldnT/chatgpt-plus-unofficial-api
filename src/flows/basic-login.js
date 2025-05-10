@@ -12,6 +12,11 @@ const { waitForTimeout } = require('../utils/helpers');
  * @param {import('puppeteer').Page} page - The Puppeteer Page instance
  */
 async function performLoginWithBasicAuth(page) {
+  // ensure we’re on chatgpt.com for correct session context
+  if (!page.url().includes('chatgpt.com')) {
+    await page.goto('https://chatgpt.com');
+  }
+
   console.log('Waiting for page load and potential redirects...');
   // Give time for any automatic redirects or network idle
   await waitForTimeout(3000);
@@ -41,6 +46,9 @@ async function performLoginWithBasicAuth(page) {
   const continueButton = page.locator('div ::-p-aria(Continue)');
   await continueButton.click();
 
+  //wait for page to load and redirect correctly
+  await waitForTimeout(4000);
+  await page.waitForSelector('#prompt-textarea');
   console.log('Login flow complete.');
 }
 

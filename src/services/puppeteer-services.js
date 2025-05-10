@@ -14,6 +14,9 @@ async function initializePage() {
 
         const userDataDir = path.join(__dirname, '..', '..', 'chrome-user-data');
 
+        const windowWidth = 1920; // Example: Full HD width
+        const windowHeight = 540;  // Example: Half of Full HD height
+
         browserInstance = await puppeteer.launch({
             headless: false,
             userDataDir,
@@ -21,6 +24,8 @@ async function initializePage() {
                 '--no-sandbox',                         // disable sandbox for local testing
                 '--disable-setuid-sandbox',             // disable setuid sandbox helper
                 '--disable-blink-features=AutomationControlled', // hide automation flag
+                `--window-size=${windowWidth},${windowHeight}`, // Set window size
+                '--window-position=0,0',                // Set window position to top-left
             ],
             defaultViewport: null,
         });
