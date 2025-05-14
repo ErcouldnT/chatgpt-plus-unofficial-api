@@ -1,3 +1,4 @@
+
 # 🧠 Unofficial ChatGPT API Node.js
 
 > A developer-focused Node.js + Puppeteer-powered backend that exposes an unofficial OpenAI ChatGPT API by automating browser interaction with chat.openai.com—ideal for local testing, prompt chaining, and AI chatbot exploration without using official API keys.
@@ -12,7 +13,9 @@ While OpenAI’s official APIs are powerful, they come with rate limits, cost ba
 - Mimic reasoning and web search modes for enhanced answers (optional).
 - Simulate a local API-like development flow for chatbot prototyping and AI experimentation.
 
----
+## Note
+
+> “Reliance on UI behavior can cause this API to be unreliable in production; it is recommended for local experimentation, and I'm continually working to make it more robust."
 
 ## 🧰 Tech Stack
 
@@ -21,8 +24,6 @@ While OpenAI’s official APIs are powerful, they come with rate limits, cost ba
 - **dotenv** – Credential & config management
 - **HTML parsing** (in-progress) – To extract & process response
 - **CORS, Body-Parser** – Clean JSON APIs
-
----
 
 ## 🛠️ Setup Guide
 
@@ -98,8 +99,8 @@ Test workflow:
 }
 ```
 
-| Field              | Type    | Description                                   | Required |
-| ------------------ | ------- | --------------------------------------------- | -------- |
+| Field                | Type    | Description                                   | Required |
+| -------------------- | ------- | --------------------------------------------- | -------- |
 | `prompt`           | String  | The text prompt to send to ChatGPT.           | Yes      |
 | `options.reason`   | Boolean | Enables Reason mode (default: false).         | No       |
 | `options.search`   | Boolean | Enables Search mode (default: false).         | No       |
@@ -114,8 +115,8 @@ Test workflow:
 }
 ```
 
-| Field      | Type   | Description                        |
-| ---------- | ------ | ---------------------------------- |
+| Field        | Type   | Description                        |
+| ------------ | ------ | ---------------------------------- |
 | `threadId` | String | The ID of the conversation thread. |
 | `response` | String | The cleaned response from ChatGPT. |
 
@@ -168,7 +169,7 @@ Sample Response:
 ## ⚠️ Known Issues
 
 - Small viewport may trigger mobile view and change behavior.
-- “Reason” mode writes to alternate DOM nodes.
+- “Reason” mode writes to alternate DOM nodes. [**Not working Currently!**]
 - Some long responses split across multiple elements.
 
 ## 📊 Workflow Diagram
@@ -192,4 +193,4 @@ Developed with ☕ by Roxylius
 
 ## 📄 License
 
-ISC License
+MIT License
