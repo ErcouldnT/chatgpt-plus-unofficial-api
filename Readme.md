@@ -174,6 +174,7 @@ Sample Response:
 
 ## 📊 Workflow Diagram
 
+```mermaid
 graph TD
 A[Client Request] -->|/api/prompt| B[Express Server]
 B --> C{Check Auth?}
@@ -186,6 +187,7 @@ G --> H[Inject Prompt]
 H --> I[Poll for Response]
 I --> J[Extract Response HTML/Text]
 J --> K[Return JSON to Client]
+```
 
 ## 👩‍💻 Author
 
