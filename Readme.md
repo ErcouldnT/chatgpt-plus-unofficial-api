@@ -15,7 +15,7 @@ While OpenAI’s official APIs are powerful, they come with rate limits, cost ba
 
 ## Note
 
-> “Reliance on UI behavior can cause this API to be unreliable in production; it is recommended for local experimentation, and I'm continually working to make it more robust."
+> “Reliance on UI behavior can cause this API to be unreliable in production; it is recommended for local use only, but I'm continually working to make it more robust."
 
 ## 🧰 Tech Stack
 
