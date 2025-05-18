@@ -12,13 +12,13 @@ log4js.configure(config);
  * @param {string} fileName - Base name of the calling module (e.g. 'prompt-flow')
  */
 function getLogger(fileName) {
-  const logger = log4js.getLogger(fileName);
-  return {
-    debug: (method, msg) => logger.debug({ m: method }, msg),
-    info:  (method, msg) => logger.info({ m: method }, msg),
-    warn:  (method, msg) => logger.warn({ m: method }, msg),
-    error: (method, msg) => logger.error({ m: method }, msg),
-  };
+    const logger = log4js.getLogger(fileName);
+    return {
+        debug: (method, msg) => logger.debug(`[${method}] ${msg}`),
+        info: (method, msg) => logger.info(`[${method}] ${msg}`),
+        warn: (method, msg) => logger.warn(`[${method}] ${msg}`),
+        error: (method, msg) => logger.error(`[${method}] ${msg}`),
+    };
 }
 
 module.exports = { getLogger };

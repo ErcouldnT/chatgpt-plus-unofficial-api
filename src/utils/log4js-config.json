@@ -2,20 +2,22 @@
   "appenders": {
     "file": {
       "type": "file",
-      "filename": "../../logs/server.log",
-      "maxLogSize": 10485760,
-      "backups": 3,
-      "compress": true,
+      "filename": "./logs/server",
+       "pattern": "yyyy-MM-dd.log",                
+      "alwaysIncludePattern": true,            
+      "compress": true, 
+      "daysToKeep": 30,    
+      "keepFileExt": false,
       "layout": {
         "type": "pattern",
-        "pattern": "[%d{yyyy-MM-dd hh:mm:ss.SSS}] [%p] %c - [Method: %m] %m"
+        "pattern": "[%d{yyyy-MM-dd hh:mm:ss}] [%p] %c - %m"
       }
     },
     "console": {
       "type": "console",
       "layout": {
         "type": "pattern",
-        "pattern": "[%d{yyyy-MM-dd hh:mm:ss.SSS}] [%p] %c - [Method: %m] %m"
+        "pattern": "[%d{yyyy-MM-dd hh:mm:ss}]  [%p] %c - %m"
       }
     }
   },
