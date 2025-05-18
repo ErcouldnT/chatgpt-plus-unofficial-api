@@ -1,0 +1,10 @@
+{
+  "appenders": {
+    "console": { "type": "console" },
+    "file": { "type": "file", "filename": "app.log" }
+  },
+  "categories": {
+    "default": { "appenders": ["console", "file"], "level": "info" },
+    "promptFlow": { "appenders": ["console", "file"], "level": "debug" }
+  }
+}

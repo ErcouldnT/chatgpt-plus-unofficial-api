@@ -61,18 +61,32 @@ async function promptWithOptions(page, options, prompt) {
     console.log('🕒 Polling response until stable…');
     let previous = '';
     let finalText = null;
-    for (let i = 0; i < 60; i++) {              // up to ~30s
+
+    // wait for reponse container element to appear in DOM
+    try {
+        await page.waitForSelector(mdSelector, { timeout: 600000, visible: true }); // 10 min 
+    } catch (error) {
+        return {
+            err: `An occured during waiting for Response container to be visible. \nError: ${error}`
+        };
+    }
+
+    for (let i = 0; i < 60; i++) {//poll up to ~60s to account for streaming response
+
+        //get text content from the response container
         const handle = await page.$(mdSelector);
         const text = handle
             ? await handle.evaluate(el => el.innerText.trim())
             : '';
+
         console.log(`🕒 Poll #${i + 1}:`, text ? `${text.slice(0, 50)}…` : '[empty]');
-        if (text && text === previous) {
+
+        if (text && text === previous) { //break the polling if the entire response is returned
             finalText = text;
             break;
         }
         previous = text;
-        await waitForTimeout(500);
+        await waitForTimeout(1000); // wait for 1sec before polling the next time
     }
 
     if (finalText === null) {
