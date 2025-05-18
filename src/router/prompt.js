@@ -4,6 +4,10 @@ const { getPage } = require('../services/puppeteer-services');
 const { promptWithOptions } = require('../flows/prompt-flow');
 const { isChatGPTLoggedIn } = require('../utils/helpers');
 
+//import logger
+const {getLogger} = require('../utils/logger');
+const logger = getLogger("prompt.js");
+
 //handle login Routes
 const promptRouter = express.Router();
 
@@ -12,6 +16,8 @@ promptRouter.post('/',async (req,res,next)=> {
     console.log("In prompt post request...");
     //retrieve input passed from client
     const {prompt,options} = req.body;
+
+    logger.info("POST:/api/prompt","route working...");
 
     //get puppeteer page instance
     const page = getPage();

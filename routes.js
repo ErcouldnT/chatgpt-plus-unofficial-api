@@ -3,8 +3,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 
 //express routers to handle route
-const promptRouter = require('./src/views/prompt');
-const loginRouter = require('./src/views/login');
+const promptRouter = require('./src/router/prompt');
 
 const app = express();
 
@@ -14,7 +13,6 @@ app.use(bodyParser.urlencoded({ extended: true })); //to read the post request f
 app.use(express.json()); //to interpret json
 
 //Routes
-app.use('/api/login',loginRouter);
 app.use('/api/prompt',promptRouter);
 
 
