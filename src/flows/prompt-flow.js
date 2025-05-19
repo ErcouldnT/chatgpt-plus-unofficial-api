@@ -1,7 +1,9 @@
 // src/flows/prompt-flow.js
 // Contains the logic for sending prompts to ChatGPT with optional modes
+const { HtmlToText } = require('html-to-text-conv');
+const { waitForTimeout, extractParagraphContent, htmlResponseToText } = require("../utils/helpers");
 
-const { waitForTimeout, extractParagraphContent } = require("../utils/helpers");
+const converter = new HtmlToText();
 
 /**
  * Sends a prompt to ChatGPT (with “Reason”/“Search” modes), waits for the reply,
@@ -19,7 +21,7 @@ async function promptWithOptions(page, options, prompt) {
     const base = 'https://chatgpt.com';
     const url = threadId ? `${base}/c/${threadId}` : base;
     console.log(`🌐 Loading URL: ${url}`);
-    await page.goto(url);
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 120_000  }); //wait for DOM to load for a 120sec
 
     // Toggle modes if requested
     if (reason) {
@@ -43,7 +45,7 @@ async function promptWithOptions(page, options, prompt) {
 
     // Type and submit prompt
     console.log('✏️ Typing and submitting prompt...');
-    const promptContext = `return the response to the below prompt in a single string '' wrapped in a <p>{response}</p> tag with no formatting and no parent div in output. Prompt as follows: `;
+    const promptContext = `return the response to the below prompt excluding all the sources with links mentioned in the response anywhere. Prompt as follows: `;
     await editor.type(promptContext + prompt);
     await editor.press('Enter');
 
@@ -55,23 +57,16 @@ async function promptWithOptions(page, options, prompt) {
     const mdSelector = `article[data-testid="${latestId}"] div.markdown`;
 
     // Ensure the .markdown div exists
-    await page.waitForSelector(mdSelector, { timeout: 15000 });
+    await page.waitForSelector(mdSelector, { timeout: 30_000 }); //wait to response container for 30 sec
 
     // Poll until the text stops changing
     console.log('🕒 Polling response until stable…');
     let previous = '';
     let finalText = null;
 
-    // wait for reponse container element to appear in DOM
-    try {
-        await page.waitForSelector(mdSelector, { timeout: 600000, visible: true }); // 10 min 
-    } catch (error) {
-        return {
-            err: `An occured during waiting for Response container to be visible. \nError: ${error}`
-        };
-    }
+    const POLL_LIMIT = reason ? 600 : 300; // if reason mode poll for 10min else poll for 5min
 
-    for (let i = 0; i < 60; i++) {//poll up to ~60s to account for streaming response
+    for (let i = 0; i < POLL_LIMIT; i++) { //polls up to POLL_LIMIT to account for streaming response
 
         //get text content from the response container
         const handle = await page.$(mdSelector);
@@ -94,8 +89,10 @@ async function promptWithOptions(page, options, prompt) {
         finalText = previous || null;  // empty string becomes null
     }
 
-    // Only attempt extraction if we actually got something
-    const cleaned = extractParagraphContent(finalText);
+    // parse text from html content
+    const cleaned = converter.convert(finalText);
+    console.log({cleaned});
+
     if (cleaned === null) {
         console.error('⚠️ Failed to extract <p> content.');
     } else {

@@ -59,16 +59,7 @@ async function openGPT() {
         page = await browser.newPage();
 
         // -------------------------------------------------------------------------
-        // 3) Navigate to ChatGPT
-        //
-        // Use the canonical URL; this will redirect to login or the chat interface
-        // depending on authentication state.
-        // -------------------------------------------------------------------------
-        await page.goto('https://chatgpt.com');
-        console.log('🌐 Navigated to chatgpt.com');
-
-        // -------------------------------------------------------------------------
-        // 4) Authentication check
+        // 3) Authentication check
         //
         // Use our helper to inspect sessionStorage; if not logged in, perform the
         // basic email & pass auth login flow. This avoids unnecessary re-authentication.
@@ -81,7 +72,7 @@ async function openGPT() {
         }
 
         // -------------------------------------------------------------------------
-        // 5) Send prompt with reuse of existing conversation thread (if any)
+        // 4) Send prompt with reuse of existing conversation thread (if any)
         //
         // We pass prompt + optional modes (`search`, `reason`) and the threadId.
         // ChatGPT will continue the conversation in the specified thread if provided.
@@ -89,8 +80,8 @@ async function openGPT() {
         const prompt = "based on researching forbes data who are the top 10 richest person in vietnam as of may 2025";
         const options = {
             search: true,
-            reason: false,
-            threadId: '681a6cba-c0fc-8004-977c-f34adf806988'
+            reason: true,
+            // threadId: '681a6cba-c0fc-8004-977c-f34adf806988'
         }
         const responseObject = await promptWithOptions(page, options, prompt);
         if (responseObject === null) {

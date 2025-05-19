@@ -1,5 +1,6 @@
 // src/utils/helpers.js
 // Contains reusable utility functions for ChatGPT automation flows
+// const {htmlToText} = require('html-to-text');
 
 /**
  * Returns a Promise that resolves after a specified timeout.
@@ -69,9 +70,43 @@ function extractParagraphContent(raw) {
   return inner;
 }
 
+/**
+ * Converts any HTML string into well-formatted plain text.
+ * - Ignores <button> elements.
+ * - Renders tables with column separations and line breaks.
+ * @param {string} html
+ * @returns {string|null}  formatted text or null if none
+ */
+function htmlResponseToText(html) {
+  // if (!html) return null;
+  // const text = htmlToText(html, {
+  //   wordwrap: false,
+  //   selectors: [
+  //     { selector: 'button', format: 'skip' }
+  //   ],
+  //   tables: [
+  //     {            // render all tables
+  //       options: { 
+  //         rowDelimiter: '\n', 
+  //         columnDelimiter: '\t' 
+  //       }
+  //     }
+  //   ],
+  //   // preserve headings and paragraphs
+  //   formatters: {
+  //     heading: (elem, walk, builder) => { builder.openBlock(); walk(elem.children, builder); builder.add('\n'); builder.closeBlock(); },
+  //     // default for paragraphs
+    // },
+  // });
+  // return text.trim() || null;
+  return null;
+}
+
+
 
 module.exports = {
   waitForTimeout,
   isChatGPTLoggedIn,
-  extractParagraphContent
+  extractParagraphContent,
+  htmlResponseToText
 };
