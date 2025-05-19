@@ -1,6 +1,5 @@
 // src/utils/helpers.js
 // Contains reusable utility functions for ChatGPT automation flows
-const { convert } = require('html-to-text');
 const { HtmlToText } = require('html-to-text-conv');
 
 /**
@@ -68,28 +67,11 @@ function htmlResponseToText(html) {
   const text = converter.convert(html);
 
   return text;
-  // return convert(html, {
-  //   wordwrap: 80,
-  //   selectors: [
-  //     { selector: 'button', format: 'skip' },
-  //     { selector: ['h1','h2','h3','h4','h5','h6'], format: 'heading' },
-  //     { selector: 'p', format: 'paragraph' },
-  //     { selector: 'a', format: 'inline', options: { linkBrackets: false } },
-  //     { selector: 'table', format: 'table' },
-  //     { selector: ['thead','tbody','tr'], format: 'skip' },
-  //     { selector: ['th','td'], format: 'inline' }
-  //   ],
-  //   table: {
-  //     rowSeparator: '\n',
-  //     columnSeparator: '\t'
-  //   }
-  // });
 }
 
 
 module.exports = {
   waitForTimeout,
   isChatGPTLoggedIn,
-  extractParagraphContent,
   htmlResponseToText
 };

@@ -1,6 +1,9 @@
 // src/flows/prompt-flow.js
 // Contains the logic for sending prompts to ChatGPT with optional modes
-const { waitForTimeout, extractParagraphContent, htmlResponseToText } = require("../utils/helpers");
+const { waitForTimeout, htmlResponseToText } = require("../utils/helpers");
+const {getLogger} = require('../utils/logger');
+
+const logger = getLogger('prompt-flow.js'); //get logger object
 
 /**
  * Sends a prompt to ChatGPT (with “Reason”/“Search” modes), waits for the reply,
@@ -17,21 +20,21 @@ async function promptWithOptions(page, options, prompt) {
     // Navigate: reuse existing thread or start fresh
     const base = 'https://chatgpt.com';
     const url = threadId ? `${base}/c/${threadId}` : base;
-    console.log(`🌐 Loading URL: ${url}`);
+    logger.debug('promptWithOptions',`🌐 Loading URL: ${url}`);
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 120_000  }); //wait for DOM to load for a 120sec
 
     // Toggle modes if requested
     if (reason) {
-        console.log('🔍 Enabling Reason mode...');
+        logger.debug('promptWithOptions','🔍 Enabling Reason mode...');
         await page.locator('button::-p-aria(Reason)').click();
     }
     if (search) {
-        console.log('🔍 Enabling Search mode...');
+        logger.debug('promptWithOptions','🔍 Enabling Search mode...');
         await page.locator('button::-p-aria(Search)').click();
     }
 
     // Prepare and clear editor
-    console.log('✏️ Clearing editor...');
+    logger.debug('promptWithOptions','✏️ Clearing editor...');
     const editor = await page.waitForSelector('#prompt-textarea');
     await editor.click();
     await editor.evaluate(el => {
@@ -41,13 +44,13 @@ async function promptWithOptions(page, options, prompt) {
     });
 
     // Type and submit prompt
-    console.log('✏️ Typing and submitting prompt...');
+    logger.debug('promptWithOptions','✏️ Typing and submitting prompt...');
     const promptContext = `return the response to the below prompt excluding all the sources with links mentioned in the response anywhere. Prompt as follows: `;
     await editor.type(promptContext + prompt);
     await editor.press('Enter');
 
     // Grab the latest article ID
-    console.log('⏳ Waiting briefly for response container to appear…');
+    logger.debug('promptWithOptions','⏳ Waiting briefly for response container to appear…');
     await waitForTimeout(1000);
     const ids = await page.$$eval('article', els => els.map(a => a.dataset.testid));
     const latestId = ids.pop();
@@ -57,7 +60,7 @@ async function promptWithOptions(page, options, prompt) {
     await page.waitForSelector(mdSelector, { timeout: 30_000 }); //wait to response container for 30 sec
 
     // Poll until the text stops changing
-    console.log('🕒 Polling response until stable…');
+    logger.debug('promptWithOptions','🕒 Polling response until stable…');
     let previous = '';
     let finalText = null;
 
@@ -71,35 +74,35 @@ async function promptWithOptions(page, options, prompt) {
             ? await handle.evaluate(el => el.innerText.trim())
             : '';
 
-        console.log(`🕒 Poll #${i + 1}:`, text ? `${text.slice(0, 50)}…` : '[empty]');
+        //not logger.debug to prevent polluting log file
+        console.log('promptWithOptions: ',`🕒 Poll #${i + 1}: ${text ? text.slice(0, 50) + '…' : '[empty]'}`);
 
         if (text && text === previous) { //break the polling if the entire response is returned
             finalText = text;
             break;
         }
         previous = text;
-        await waitForTimeout(1000); // wait for 1sec before polling the next time
+        await waitForTimeout(3000); // wait for 3sec before polling the next time
     }
 
     if (finalText === null) {
-        console.warn('⚠️ Response never stabilized; returning last received text (if any).');
+        logger.warn('promptWithOptions','⚠️ Response never stabilized; returning last received text (if any).');
         finalText = previous || null;  // empty string becomes null
     }
 
     // parse text from html content
     const cleaned = htmlResponseToText(finalText);
-    console.log({cleaned});
 
     if (cleaned === null) {
-        console.error('⚠️ Failed to extract <p> content.');
+        logger.warn('promptWithOptions','⚠️ Failed to parse text content form HTML.');
     } else {
-        console.log('🎯 Cleaned response:', cleaned);
+        logger.debug('promptWithOptions',`🎯 Cleaned response: ${cleaned.slice(0, 50)}....`);
     }
 
     // After the prompt, re-capture the actual thread from the URL
     const match = page.url().match(/\/c\/([0-9a-f\-]+)/);
     const newThreadId = match ? match[1] : null;
-    console.log('Resolved threadId:', newThreadId);
+    logger.debug('promptWithOptions',`Resolved threadId: ${newThreadId}`);
 
     return {
         threadId: newThreadId,
