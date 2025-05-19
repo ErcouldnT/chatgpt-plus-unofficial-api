@@ -1,7 +1,7 @@
 const log4js = require('log4js');
 
 //load log4js configuration from json config file
-const config = require('./log4js-config.json');
+const config = require('../configs/log4js-config.json');
 log4js.configure(config);
 
 /**
