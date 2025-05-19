@@ -50,27 +50,6 @@ async function isChatGPTLoggedIn(page) {
 }
 
 
-
-/**
-* Given a raw response string that contains a literal <p>…</p>,
-* extract the inner content and trim off one pair of matching quotes.
-*
-* @param {string} raw
-* @returns {string|null}  cleaned text or null if nothing extracted
-*/
-function extractParagraphContent(raw) {
-  // 1) Find the first <p>…</p> block
-  const match = raw.match(/<p>([\s\S]*?)<\/p>/i);
-  if (!match) return null;           // no <p>…</p> found
-
-  let inner = match[1].trim();       // what's between the tags
-
-  // 2) Remove exactly one matching pair of quotes around it
-  inner = inner.replace(/^(['"])([\s\S]*)\1$/, '$2');
-
-  return inner;
-}
-
 /**
  * Convert HTML (including tables, headings, links) to plain text.
  * - Skips <button> elements entirely

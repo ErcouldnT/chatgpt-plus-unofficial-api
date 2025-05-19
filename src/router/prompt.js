@@ -13,19 +13,18 @@ const promptRouter = express.Router();
 
 //handle POST request for login
 promptRouter.post('/',async (req,res,next)=> {
-    console.log("In prompt post request...");
+    logger.debug("POST:/api/prompt","In prompt post request...");
+
     //retrieve input passed from client
     const {prompt,options} = req.body;
-
-    logger.debug("POST:/api/prompt","route working...");
 
     //get puppeteer page instance
     const page = getPage();
 
     if (await isChatGPTLoggedIn(page)) {
-        console.log('✅ Already signed in — skipping login flow.');
+        logger.debug("POST:/api/prompt",'✅ Already signed in — skipping login flow.');
     } else {
-        console.log('🔐 Not signed in — running login flow…');
+        logger.debug("POST:/api/prompt",'🔐 Not signed in — running login flow…');
         await performLoginWithBasicAuth(page);
     }
 
