@@ -1,9 +1,6 @@
 // src/flows/prompt-flow.js
 // Contains the logic for sending prompts to ChatGPT with optional modes
-const { HtmlToText } = require('html-to-text-conv');
 const { waitForTimeout, extractParagraphContent, htmlResponseToText } = require("../utils/helpers");
-
-const converter = new HtmlToText();
 
 /**
  * Sends a prompt to ChatGPT (with “Reason”/“Search” modes), waits for the reply,
@@ -90,7 +87,7 @@ async function promptWithOptions(page, options, prompt) {
     }
 
     // parse text from html content
-    const cleaned = converter.convert(finalText);
+    const cleaned = htmlResponseToText(finalText);
     console.log({cleaned});
 
     if (cleaned === null) {

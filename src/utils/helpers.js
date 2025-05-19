@@ -1,6 +1,7 @@
 // src/utils/helpers.js
 // Contains reusable utility functions for ChatGPT automation flows
-// const {htmlToText} = require('html-to-text');
+const { convert } = require('html-to-text');
+const { HtmlToText } = require('html-to-text-conv');
 
 /**
  * Returns a Promise that resolves after a specified timeout.
@@ -71,37 +72,40 @@ function extractParagraphContent(raw) {
 }
 
 /**
- * Converts any HTML string into well-formatted plain text.
- * - Ignores <button> elements.
- * - Renders tables with column separations and line breaks.
- * @param {string} html
- * @returns {string|null}  formatted text or null if none
+ * Convert HTML (including tables, headings, links) to plain text.
+ * - Skips <button> elements entirely
+ * - Renders headings on their own lines
+ * - Preserves paragraphs with blank lines
+ * - Inlines links as "text (url)"
+ * - Formats tables with tabs between cells and newlines between rows
+ *
+ * @param {string} html - Raw HTML string to convert
+ * @returns {string}    - Plain-text representation
  */
 function htmlResponseToText(html) {
-  // if (!html) return null;
-  // const text = htmlToText(html, {
-  //   wordwrap: false,
-  //   selectors: [
-  //     { selector: 'button', format: 'skip' }
-  //   ],
-  //   tables: [
-  //     {            // render all tables
-  //       options: { 
-  //         rowDelimiter: '\n', 
-  //         columnDelimiter: '\t' 
-  //       }
-  //     }
-  //   ],
-  //   // preserve headings and paragraphs
-  //   formatters: {
-  //     heading: (elem, walk, builder) => { builder.openBlock(); walk(elem.children, builder); builder.add('\n'); builder.closeBlock(); },
-  //     // default for paragraphs
-    // },
-  // });
-  // return text.trim() || null;
-  return null;
-}
+  //create converter object
+  const converter = new HtmlToText();
 
+  const text = converter.convert(html);
+
+  return text;
+  // return convert(html, {
+  //   wordwrap: 80,
+  //   selectors: [
+  //     { selector: 'button', format: 'skip' },
+  //     { selector: ['h1','h2','h3','h4','h5','h6'], format: 'heading' },
+  //     { selector: 'p', format: 'paragraph' },
+  //     { selector: 'a', format: 'inline', options: { linkBrackets: false } },
+  //     { selector: 'table', format: 'table' },
+  //     { selector: ['thead','tbody','tr'], format: 'skip' },
+  //     { selector: ['th','td'], format: 'inline' }
+  //   ],
+  //   table: {
+  //     rowSeparator: '\n',
+  //     columnSeparator: '\t'
+  //   }
+  // });
+}
 
 
 module.exports = {
