@@ -1,4 +1,3 @@
-
 # 🧠 Unofficial ChatGPT API Node.js
 
 > A developer-focused Node.js + Puppeteer-powered backend that exposes an unofficial OpenAI ChatGPT API by automating browser interaction with chat.openai.com—ideal for local testing, prompt chaining, and AI chatbot exploration without using official API keys.
@@ -91,11 +90,17 @@ Test workflow:
 ```json
 {
   "prompt": "Your prompt here",
-  "options": {
+  "options": { 	// this object is optional 
     "reason": false,
     "search": true,
     "threadId": "optional_thread_id"
   }
+}
+```
+or
+```json
+{
+  "prompt": "Your prompt here"
 }
 ```
 

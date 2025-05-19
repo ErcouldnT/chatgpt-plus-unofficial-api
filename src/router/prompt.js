@@ -16,7 +16,7 @@ promptRouter.post('/',async (req,res,next)=> {
     logger.debug("POST:/api/prompt","In prompt post request...");
 
     //retrieve input passed from client
-    const {prompt,options} = req.body;
+    const {prompt,options = {}} = req.body; //defaults options to null obj
 
     //get puppeteer page instance
     const page = getPage();
