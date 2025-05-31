@@ -84,6 +84,8 @@ Test workflow:
 
 #### POST /api/prompt
 
+> As of latest ChatGPT update, reason automatically searches when required no need for both, only use Search when no Reasoning is required
+
 - **Description:** Sends a prompt to ChatGPT and retrieves the response.
 - **Request Body:**
 
@@ -97,7 +99,9 @@ Test workflow:
   }
 }
 ```
+
 or
+
 ```json
 {
   "prompt": "Your prompt here"

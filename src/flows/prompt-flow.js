@@ -15,7 +15,7 @@ const logger = getLogger('prompt-flow.js'); //get logger object
  * @returns {Promise<string|null>}           - The completed response text, or null if none received
  */
 async function promptWithOptions(page, options, prompt) {
-    const { reason, search, threadId } = options;
+    let { reason, search, threadId } = options;
 
     // Navigate: reuse existing thread or start fresh
     const base = 'https://chatgpt.com';
@@ -24,13 +24,17 @@ async function promptWithOptions(page, options, prompt) {
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 120_000  }); //wait for DOM to load for a 120sec
 
     // Toggle modes if requested
+    logger.debug('promptWithOptions','☰ Toggle Prompt tools...');
+    await page.locator('button::-p-aria(Choose tool)').click();
+    
     if (reason) {
         logger.debug('promptWithOptions','🔍 Enabling Reason mode...');
-        await page.locator('button::-p-aria(Reason)').click();
+        await page.locator('div::-p-text(Think)').click();
+        search = false;
     }
     if (search) {
         logger.debug('promptWithOptions','🔍 Enabling Search mode...');
-        await page.locator('button::-p-aria(Search)').click();
+        await page.locator('div::-p-text(Search)').click();
     }
 
     // Prepare and clear editor
@@ -54,10 +58,10 @@ async function promptWithOptions(page, options, prompt) {
     await waitForTimeout(1000);
     const ids = await page.$$eval('article', els => els.map(a => a.dataset.testid));
     const latestId = ids.pop();
-    const mdSelector = `article[data-testid="${latestId}"] div.markdown`;
+    const mdSelector = `article[data-testid="${latestId}"] div[data-message-author-role="assistant"] div.markdown`;
 
     // Ensure the .markdown div exists
-    await page.waitForSelector(mdSelector, { timeout: 30_000 }); //wait to response container for 30 sec
+    await page.waitForSelector(mdSelector, { timeout: 600_000 }); //wait to response container for 10 minutes or 600 secs
 
     // Poll until the text stops changing
     logger.debug('promptWithOptions','🕒 Polling response until stable…');
