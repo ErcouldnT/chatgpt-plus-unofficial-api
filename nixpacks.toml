@@ -1,9 +1,0 @@
-[build]
-nixpacksVersion = "1.15.0"
-
-[phases.setup]
-nixPkgs = ["...", "glibc", "coreutils"]
-nixLibs = ["glibc"]
-
-[variables]
-NIXPACKS_NODE_VERSION = "20"
