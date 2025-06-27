@@ -4,7 +4,9 @@
   "main": "index.js",
   "scripts": {
     "test": "node example-test.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "start": "node server.js",
+    "postinstall": "npx puppeteer browsers install chrome"
   },
   "author": "roxylius",
   "license": "ISC",
@@ -12,6 +14,7 @@
   "dependencies": {
     "body-parser": "^2.2.0",
     "chatgpt": "^5.2.5",
+    "colorspace": "^1.1.4",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
