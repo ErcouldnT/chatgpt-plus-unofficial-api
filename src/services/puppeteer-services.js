@@ -18,7 +18,7 @@ async function initializePage() {
     const windowHeight = 540; // Example: Half of Full HD height
 
     browserInstance = await puppeteer.launch({
-      headless: true,
+      headless: process.env.NODE_ENV !== "development",
       userDataDir,
       args: [
         "--no-sandbox", // disable sandbox for local testing
