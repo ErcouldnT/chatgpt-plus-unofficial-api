@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "node example-test.js",
-    "dev": "node server.js",
-    "start": "node server.js"
+    "dev": "nodemon server.js",
+    "start": "node server.js",
+    "test": "node example-test.js"
   },
   "author": "roxylius",
   "license": "ISC",
@@ -26,6 +26,7 @@
     "puppeteer-extra-plugin-stealth": "^2.11.2"
   },
   "devDependencies": {
-    "jsdom": "^26.1.0"
+    "jsdom": "^26.1.0",
+    "nodemon": "^3.1.10"
   }
 }
