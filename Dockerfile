@@ -19,4 +19,11 @@ COPY package*.json ./
 RUN npm install
 COPY . .
 
+# Create Chrome user data directory
+RUN mkdir -p /app/chrome-user-data
+
+# Declare volume for persistence
+VOLUME ["/app/chrome-user-data"]
+
 CMD ["node", "server.js"]
+
