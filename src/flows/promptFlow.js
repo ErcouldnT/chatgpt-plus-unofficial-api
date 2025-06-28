@@ -17,25 +17,25 @@ export async function promptWithOptions(page, options, prompt) {
   // Navigate: reuse existing thread or start fresh
   const base = "https://chatgpt.com";
   const url = threadId ? `${base}/c/${threadId}` : base;
-  console.warn("promptWithOptions | 🌐 Loading URL:", url);
+  console.warn("🌐 Loading URL:", url);
   await page.goto(url, { waitUntil: "domcontentloaded", timeout: 120_000 }); // wait for DOM to load for a 120sec
 
   // Toggle modes if requested
-  console.warn("promptWithOptions | ☰ Toggle Prompt tools...");
+  console.warn("☰ Toggle Prompt tools...");
   await page.locator("button::-p-aria(Choose tool)").click();
 
   if (reason) {
-    console.warn("promptWithOptions | 🔍 Enabling Reason mode...");
+    console.warn("🔍 Enabling Reason mode...");
     await page.locator("div::-p-text(Think)").click();
     search = false;
   }
   if (search) {
-    console.warn("promptWithOptions | 🔍 Enabling Search mode...");
+    console.warn("🔍 Enabling Search mode...");
     await page.locator("div::-p-text(Search)").click();
   }
 
   // Prepare and clear editor
-  console.warn("promptWithOptions | ✏️ Clearing editor...");
+  console.warn("✏️ Clearing editor...");
   const editor = await page.waitForSelector("#prompt-textarea");
   await editor.click();
   await editor.evaluate((el) => {
@@ -45,13 +45,13 @@ export async function promptWithOptions(page, options, prompt) {
   });
 
   // Type and submit prompt
-  console.warn("promptWithOptions | ✏️ Typing and submitting prompt...");
+  console.warn("✏️ Typing and submitting prompt...");
   const promptContext = `return the response to the below prompt excluding all the sources with links mentioned in the response anywhere. Prompt as follows: `;
   await editor.type(promptContext + prompt);
   await editor.press("Enter");
 
   // Grab the latest article ID
-  console.warn("promptWithOptions | ⏳ Waiting briefly for response container to appear…");
+  console.warn("⏳ Waiting briefly for response container to appear…");
   await waitForTimeout(1000);
   const ids = await page.$$eval("article", els =>
     els.map(a => a.dataset.testid));
@@ -62,7 +62,7 @@ export async function promptWithOptions(page, options, prompt) {
   await page.waitForSelector(mdSelector, { timeout: 600_000 }); // wait to response container for 10 minutes or 600 secs
 
   // Poll until the text stops changing
-  console.warn("promptWithOptions | 🕒 Polling response until stable…");
+  console.warn("🕒 Polling response until stable…");
   let previous = "";
   let finalText = null;
 
@@ -77,7 +77,7 @@ export async function promptWithOptions(page, options, prompt) {
       : "";
 
     console.warn(
-      `promptWithOptions | 🕒 Poll #${i + 1}:`,
+      `🕒 Poll #${i + 1}:`,
       text ? `${text.slice(0, 50)}…` : "[empty]",
     );
 
@@ -92,7 +92,7 @@ export async function promptWithOptions(page, options, prompt) {
 
   if (finalText === null) {
     console.warn(
-      "promptWithOptions | ⚠️ Response never stabilized; returning last received text (if any).",
+      "⚠️ Response never stabilized; returning last received text (if any).",
     );
     finalText = previous || null; // empty string becomes null
   }
@@ -102,12 +102,12 @@ export async function promptWithOptions(page, options, prompt) {
 
   if (cleaned === null) {
     console.warn(
-      "promptWithOptions | ⚠️ Failed to parse text content form HTML.",
+      "⚠️ Failed to parse text content form HTML.",
     );
   }
   else {
     console.warn(
-      "promptWithOptions | 🎯 Cleaned response:",
+      "🎯 Cleaned response:",
       `${cleaned.slice(0, 50)}....`,
     );
   }
@@ -115,7 +115,7 @@ export async function promptWithOptions(page, options, prompt) {
   // After the prompt, re-capture the actual thread from the URL
   const match = page.url().match(/\/c\/([0-9a-f\-]+)/);
   const newThreadId = match ? match[1] : null;
-  console.warn("promptWithOptions | Resolved threadId:", newThreadId);
+  console.warn("Resolved threadId:", newThreadId);
 
   return {
     threadId: newThreadId,
