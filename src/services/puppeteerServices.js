@@ -1,18 +1,20 @@
-require("dotenv").config();
-const path = require("node:path");
-const process = require("node:process");
-const puppeteer = require("puppeteer-extra");
-const StealthPlugin = require("puppeteer-extra-plugin-stealth");
+import path from "node:path";
+import process from "node:process";
+import dotenv from "dotenv";
+import puppeteer from "puppeteer-extra";
+import StealthPlugin from "puppeteer-extra-plugin-stealth";
+
+dotenv.config();
 
 puppeteer.use(StealthPlugin());
 
 let browserInstance = null;
 
-async function initializeBrowser() {
+export async function initializeBrowser() {
   if (!browserInstance) {
     console.warn("▶️ Launching browser with persistent profile…");
 
-    const userDataDir = path.join(__dirname, "..", "..", "chrome-user-data");
+    const userDataDir = path.join(path.resolve(), "chrome-user-data");
 
     const windowWidth = 1920; // Example: Full HD width
     const windowHeight = 540; // Example: Half of Full HD height
@@ -24,8 +26,8 @@ async function initializeBrowser() {
         "--no-sandbox", // disable sandbox for local testing
         "--disable-setuid-sandbox", // disable setuid sandbox helper
         "--disable-blink-features=AutomationControlled", // hide automation flag
-        `--window-size=${windowWidth},${windowHeight}`, // Set window size
-        "--window-position=0,0", // Set window position to top-left
+        `--window-size=${windowWidth},${windowHeight}`,
+        "--window-position=0,0",
       ],
       defaultViewport: null,
     });
@@ -35,7 +37,7 @@ async function initializeBrowser() {
   return browserInstance;
 }
 
-function getBrowser() {
+export function getBrowser() {
   if (!browserInstance) {
     throw new Error(
       "Browser has not been initialized. Call initializeBrowser() first, typically at server startup.",
@@ -44,16 +46,10 @@ function getBrowser() {
   return browserInstance;
 }
 
-async function closeBrowser() {
+export async function closeBrowser() {
   if (browserInstance) {
     console.warn("Closing browser...");
     await browserInstance.close();
     browserInstance = null;
   }
 }
-
-module.exports = {
-  initializeBrowser,
-  getBrowser,
-  closeBrowser,
-};

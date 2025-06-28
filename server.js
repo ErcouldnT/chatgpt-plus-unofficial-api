@@ -1,15 +1,15 @@
-require("dotenv").config();
-const process = require("node:process");
-const express = require("express");
+import process from "node:process";
+import dotenv from "dotenv";
+import express from "express";
 
-const { performLoginWithBasicAuth } = require("./src/flows/basicLogin");
-const { initializeBrowser, getBrowser } = require("./src/services/puppeteerServices");
-const { isChatGPTLoggedIn } = require("./src/utils/helpers");
+import routesHandler from "./routes.js";
+import { performLoginWithBasicAuth } from "./src/flows/basicLogin.js";
+import { getBrowser, initializeBrowser } from "./src/services/puppeteerServices.js";
+import { isChatGPTLoggedIn } from "./src/utils/helpers.js";
+
+dotenv.config();
 
 const server = express();
-
-// we require app.js as it handles all the routes
-const routesHandler = require("./routes");
 
 // app is a middleware fn which is included here i.e. it is used in server but the code is defined else where but we use it here
 server.use(routesHandler);

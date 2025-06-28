@@ -1,6 +1,6 @@
 // src/flows/promptFlow.js
 // Contains the logic for sending prompts to ChatGPT with optional modes
-const { waitForTimeout, htmlResponseToText } = require("../utils/helpers");
+import { htmlResponseToText, waitForTimeout } from "../utils/helpers.js";
 
 /**
  * Sends a prompt to ChatGPT (with “Reason”/“Search” modes), waits for the reply,
@@ -11,7 +11,7 @@ const { waitForTimeout, htmlResponseToText } = require("../utils/helpers");
  * @param {string} prompt                    - The user’s prompt
  * @returns {Promise<string|null>}           - The completed response text, or null if none received
  */
-async function promptWithOptions(page, options, prompt) {
+export async function promptWithOptions(page, options, prompt) {
   let { reason, search, threadId } = options;
 
   // Navigate: reuse existing thread or start fresh
@@ -122,5 +122,3 @@ async function promptWithOptions(page, options, prompt) {
     response: cleaned,
   };
 }
-
-module.exports = { promptWithOptions };

@@ -1,7 +1,9 @@
-require("dotenv").config();
-const process = require("node:process");
+import process from "node:process";
+import dotenv from "dotenv";
 
-function verifyApiKey(req, res, next) {
+dotenv.config();
+
+export function verifyApiKey(req, res, next) {
   // skip API key verification in development mode
   if (process.env.NODE_ENV === "development") {
     return next();
@@ -12,5 +14,3 @@ function verifyApiKey(req, res, next) {
   }
   next();
 }
-
-module.exports = verifyApiKey;

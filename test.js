@@ -1,11 +1,13 @@
-require("dotenv").config(); // Load environment variables from .env file (if any)
-const path = require("node:path");
-const process = require("node:process");
-const puppeteer = require("puppeteer-extra");
-const StealthPlugin = require("puppeteer-extra-plugin-stealth");
-const { performLoginWithBasicAuth } = require("./src/flows/basicLogin");
-const { promptWithOptions } = require("./src/flows/promptFlow");
-const { isChatGPTLoggedIn } = require("./src/utils/helpers");
+import path from "node:path";
+import process from "node:process";
+import dotenv from "dotenv";
+import puppeteer from "puppeteer-extra";
+import StealthPlugin from "puppeteer-extra-plugin-stealth";
+import { performLoginWithBasicAuth } from "./src/flows/basicLogin.js";
+import { promptWithOptions } from "./src/flows/promptFlow.js";
+import { isChatGPTLoggedIn } from "./src/utils/helpers.js";
+
+dotenv.config();
 
 // Apply stealth plugin to evade bot detection (mimics human-like browser features)
 puppeteer.use(StealthPlugin());
@@ -30,7 +32,7 @@ async function openGPT() {
     // localStorage, and sessionStorage persist between runs. This prevents
     // a fresh/incognito profile on every start.
     // -------------------------------------------------------------------------
-    const userDataDir = path.join(__dirname, "chrome-user-data");
+    const userDataDir = path.join(path.resolve(), "chrome-user-data");
 
     // -------------------------------------------------------------------------
     // 2) Launch Puppeteer
@@ -74,8 +76,7 @@ async function openGPT() {
     // We pass prompt + optional modes (`search`, `reason`) and the threadId.
     // ChatGPT will continue the conversation in the specified thread if provided.
     // -------------------------------------------------------------------------
-    const prompt
-      = "based on researching forbes data who are the top 10 richest person in vietnam as of may 2025";
+    const prompt = "based on researching forbes data who are the top 10 richest person in vietnam as of may 2025";
     const options = {
       search: true,
       // reason: true,

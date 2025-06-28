@@ -1,6 +1,6 @@
-const express = require("express");
-const { promptWithOptions } = require("../flows/promptFlow");
-const { getBrowser } = require("../services/puppeteerServices");
+import express from "express";
+import { promptWithOptions } from "../flows/promptFlow.js";
+import { getBrowser } from "../services/puppeteerServices.js";
 
 // handle login Routes
 const promptRouter = express.Router();
@@ -27,4 +27,4 @@ promptRouter.post("/", async (req, res) => {
   }
 });
 
-module.exports = promptRouter;
+export default promptRouter;

@@ -1,8 +1,10 @@
-require("dotenv").config();
-const process = require("node:process");
+import process from "node:process";
+import dotenv from "dotenv";
+import { waitForTimeout } from "../utils/helpers.js";
+
+dotenv.config();
 
 const { OPENAI_EMAIL, OPENAI_PASSWORD } = process.env;
-const { waitForTimeout } = require("../utils/helpers");
 
 /**
  * Performs the ChatGPT login flow using email/password credentials.
@@ -12,7 +14,7 @@ const { waitForTimeout } = require("../utils/helpers");
  *
  * @param {import('puppeteer').Page} page - The Puppeteer Page instance
  */
-async function performLoginWithBasicAuth(page) {
+export async function performLoginWithBasicAuth(page) {
   // ensure we’re on chatgpt.com for correct session context
   if (!page.url().includes("chatgpt.com")) {
     await page.goto("https://chatgpt.com");
@@ -52,7 +54,3 @@ async function performLoginWithBasicAuth(page) {
   await page.waitForSelector("#prompt-textarea");
   console.warn("Login flow complete.");
 }
-
-module.exports = {
-  performLoginWithBasicAuth,
-};

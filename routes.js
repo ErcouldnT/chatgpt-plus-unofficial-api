@@ -1,9 +1,8 @@
-const cors = require("cors");
-const express = require("express");
+import cors from "cors";
+import express from "express";
 
-const verifyApiKey = require("./src/middlewares/auth");
-// express routers to handle route
-const promptRouter = require("./src/router/prompt");
+import { verifyApiKey } from "./src/middlewares/auth.js";
+import promptRouter from "./src/router/prompt.js";
 
 const app = express();
 
@@ -21,4 +20,4 @@ app.get("/", (req, res) => {
   res.send("<html><body><h1>Server is up and running...</h1></body></html>");
 });
 
-module.exports = app;
+export default app;

@@ -1,11 +1,11 @@
-const cheerio = require("cheerio");
+import * as cheerio from "cheerio";
 
 /**
  * Returns a Promise that resolves after a specified timeout.
  * @param {number} ms - The number of milliseconds to wait.
  * @returns {Promise<void>} Resolves after the timeout completes.
  */
-function waitForTimeout(ms) {
+export function waitForTimeout(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
@@ -23,7 +23,7 @@ function waitForTimeout(ms) {
  * @param {import('puppeteer').Page} page - The Puppeteer Page instance.
  * @returns {Promise<boolean>} `true` if the user is logged in; otherwise `false`.
  */
-async function isChatGPTLoggedIn(page) {
+export async function isChatGPTLoggedIn(page) {
   // Ensure we're on the correct ChatGPT host
   if (!page.url().startsWith("https://chatgpt.com")) {
     await page.goto("https://chatgpt.com");
@@ -57,7 +57,7 @@ async function isChatGPTLoggedIn(page) {
  * @param {string} html - Raw HTML string to convert
  * @returns {string}    - Plain-text representation
  */
-function htmlResponseToText(html) {
+export function htmlResponseToText(html) {
   if (!html)
     return "";
   const $ = cheerio.load(html);
@@ -107,9 +107,3 @@ function htmlResponseToText(html) {
   text = text.replace(/\n{3,}/g, "\n\n");
   return text.trim();
 }
-
-module.exports = {
-  waitForTimeout,
-  isChatGPTLoggedIn,
-  htmlResponseToText,
-};
