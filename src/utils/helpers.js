@@ -1,6 +1,4 @@
-// src/utils/helpers.js
-// Contains reusable utility functions for ChatGPT automation flows
-const { HtmlToText } = require("html-to-text-conv");
+const cheerio = require("cheerio");
 
 /**
  * Returns a Promise that resolves after a specified timeout.
@@ -60,12 +58,54 @@ async function isChatGPTLoggedIn(page) {
  * @returns {string}    - Plain-text representation
  */
 function htmlResponseToText(html) {
-  // create converter object
-  const converter = new HtmlToText();
+  if (!html)
+    return "";
+  const $ = cheerio.load(html);
 
-  const text = converter.convert(html);
+  // Remove all <button> elements
+  $("button").remove();
 
-  return text;
+  // Convert tables to text
+  $("table").each((_, table) => {
+    const rows = [];
+    $(table)
+      .find("tr")
+      .each((_, tr) => {
+        const cells = [];
+        $(tr)
+          .find("th,td")
+          .each((_, cell) => {
+            cells.push($(cell).text().trim());
+          });
+        rows.push(cells.join("\t"));
+      });
+    $(table).replaceWith(rows.join("\n"));
+  });
+
+  // Headings on their own lines
+  $("h1,h2,h3,h4,h5,h6").each((_, el) => {
+    const text = $(el).text().trim();
+    $(el).replaceWith(`\n${text}\n`);
+  });
+
+  // Links as "text (url)"
+  $("a").each((_, el) => {
+    const text = $(el).text().trim();
+    const href = $(el).attr("href");
+    $(el).replaceWith(href ? `${text} (${href})` : text);
+  });
+
+  // Paragraphs with blank lines
+  $("p").each((_, el) => {
+    const text = $(el).text().trim();
+    $(el).replaceWith(`\n${text}\n`);
+  });
+
+  // Get plain text
+  let text = $.root().text();
+  // Remove extra blank lines
+  text = text.replace(/\n{3,}/g, "\n\n");
+  return text.trim();
 }
 
 module.exports = {

@@ -11,11 +11,10 @@
     "format": "eslint --fix"
   },
   "dependencies": {
+    "cheerio": "^1.1.0",
     "cors": "^2.8.5",
     "dotenv": "^17.0.0",
     "express": "^5.1.0",
-    "html-to-text-conv": "^1.0.2",
-    "jsdom": "^26.1.0",
     "log4js": "^6.9.1",
     "puppeteer": "^24.11.0",
     "puppeteer-extra": "^3.3.6",
