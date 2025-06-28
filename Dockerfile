@@ -1,4 +1,4 @@
-FROM public.ecr.aws/zenika/alpine-chrome:with-puppeteer
+FROM zenika/alpine-chrome:with-puppeteer
 
 # skip Puppeteer's Chromium download since it's already included in the image
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
