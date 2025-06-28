@@ -22,13 +22,13 @@ export async function performLoginWithBasicAuth(page) {
 
   console.warn("Waiting for page load and potential redirects...");
   // Give time for any automatic redirects or network idle
-  await waitForTimeout(3000);
+  await waitForTimeout(5000);
 
   // Locate and click the main "Log in" button by its accessible name
   console.warn("Locating and clicking the Log in button...");
   const loginButton = page.locator("::-p-aria(Log in)");
   await loginButton.click();
-  await waitForTimeout(3000);
+  await waitForTimeout(5000);
 
   // Fill in the email field
   console.warn("Filling in email address...");
@@ -50,7 +50,7 @@ export async function performLoginWithBasicAuth(page) {
   await continueButton.click();
 
   // wait for page to load and redirect correctly
-  await waitForTimeout(4000);
+  await waitForTimeout(5000);
   await page.waitForSelector("#prompt-textarea");
   console.warn("Login flow complete.");
 }

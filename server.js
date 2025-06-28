@@ -21,26 +21,19 @@ async function startServer() {
     await initializeBrowser();
     const browser = getBrowser();
     const page = await browser.newPage();
-    let loggedIn = false;
     try {
-      loggedIn = await isChatGPTLoggedIn(page);
-      if (!loggedIn) {
-        console.warn("Not logged in, performing login...");
-        await performLoginWithBasicAuth(page);
-        loggedIn = await isChatGPTLoggedIn(page);
-        if (!loggedIn) {
-          throw new Error("Login failed. Please check credentials.");
-        }
-        console.warn("Login successful.");
+      if (await isChatGPTLoggedIn(page)) {
+        console.warn("✅ Already signed in — skipping login flow.");
       }
       else {
-        console.warn("Already logged in. Skipping login flow.");
+        console.warn("🔐 Not signed in — running login flow…");
+        await performLoginWithBasicAuth(page);
       }
+      console.warn("Shared Puppeteer page initialized and authenticated successfully.");
     }
     finally {
       await page.close();
     }
-    console.warn("Shared Puppeteer page initialized and authenticated successfully.");
     const PORT = process.env.PORT || 3001;
     server.listen(PORT, () => {
       console.warn(`📺 Server is running on http://localhost:${PORT}`);
