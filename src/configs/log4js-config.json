@@ -3,10 +3,10 @@
     "file": {
       "type": "file",
       "filename": "./logs/server",
-       "pattern": "yyyy-MM-dd.log",                
-      "alwaysIncludePattern": true,            
-      "compress": true, 
-      "daysToKeep": 30,    
+      "pattern": "yyyy-MM-dd.log",
+      "alwaysIncludePattern": true,
+      "compress": true,
+      "daysToKeep": 30,
       "keepFileExt": false,
       "layout": {
         "type": "pattern",

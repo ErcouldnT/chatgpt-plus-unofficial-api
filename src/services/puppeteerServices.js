@@ -1,5 +1,6 @@
-// puppeteer-service.js
-const path = require("path");
+require("dotenv").config();
+const path = require("node:path");
+const process = require("node:process");
 const puppeteer = require("puppeteer-extra");
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
 
@@ -10,7 +11,7 @@ let browserInstance = null;
 
 async function initializePage() {
   if (!browserInstance) {
-    console.log("▶️ Launching browser with persistent profile…");
+    console.warn("▶️ Launching browser with persistent profile…");
 
     const userDataDir = path.join(__dirname, "..", "..", "chrome-user-data");
 
@@ -30,10 +31,10 @@ async function initializePage() {
       defaultViewport: null,
     });
 
-    console.log("🔗 Opening new page…");
+    console.warn("🔗 Opening new page…");
     pageInstance = await browserInstance.newPage();
 
-    console.log("Puppeteer initialized, new page created.");
+    console.warn("Puppeteer initialized, new page created.");
     // You might want to set a default viewport or other page settings here
     // await pageInstance.setViewport({ width: 1280, height: 800 });
   }
@@ -43,7 +44,7 @@ async function initializePage() {
 function getPage() {
   if (!pageInstance) {
     throw new Error(
-      "Page has not been initialized. Call initializePage() first, typically at server startup."
+      "Page has not been initialized. Call initializePage() first, typically at server startup.",
     );
   }
   return pageInstance;
@@ -51,7 +52,7 @@ function getPage() {
 
 async function closeBrowser() {
   if (browserInstance) {
-    console.log("Closing browser...");
+    console.warn("Closing browser...");
     await browserInstance.close();
     browserInstance = null;
     pageInstance = null;

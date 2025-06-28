@@ -1,16 +1,15 @@
 // src/utils/helpers.js
 // Contains reusable utility functions for ChatGPT automation flows
-const { HtmlToText } = require('html-to-text-conv');
+const { HtmlToText } = require("html-to-text-conv");
 
 /**
  * Returns a Promise that resolves after a specified timeout.
  * @param {number} ms - The number of milliseconds to wait.
  * @returns {Promise<void>} Resolves after the timeout completes.
  */
-const waitForTimeout = (ms) => {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-};
-
+function waitForTimeout(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 /**
  * Checks whether the ChatGPT web session is authenticated by querying
@@ -27,27 +26,27 @@ const waitForTimeout = (ms) => {
  * @returns {Promise<boolean>} `true` if the user is logged in; otherwise `false`.
  */
 async function isChatGPTLoggedIn(page) {
-
   // Ensure we're on the correct ChatGPT host
-  if (!page.url().startsWith('https://chatgpt.com')) {
-    await page.goto('https://chatgpt.com');
+  if (!page.url().startsWith("https://chatgpt.com")) {
+    await page.goto("https://chatgpt.com");
   }
 
   // Perform fetch inside browser context since `page.request` is not available in Puppeteer
   const session = await page.evaluate(async () => {
     try {
       // Request current auth session; includes cookies for proper context
-      const res = await fetch('https://chatgpt.com/api/auth/session', { credentials: 'include' });
-      if (!res.ok) return {};          // Non-200 → no session
-      return await res.json();         // Parsed session object
-    } catch {
-      return {};                       // Network/error → treat as not logged in
+      const res = await fetch("https://chatgpt.com/api/auth/session", { credentials: "include" });
+      if (!res.ok)
+        return {}; // Non-200 → no session
+      return await res.json(); // Parsed session object
+    }
+    catch {
+      return {}; // Network/error → treat as not logged in
     }
   });
   // Non-empty object indicates authenticated session
   return session && Object.keys(session).length > 0;
 }
-
 
 /**
  * Convert HTML (including tables, headings, links) to plain text.
@@ -61,7 +60,7 @@ async function isChatGPTLoggedIn(page) {
  * @returns {string}    - Plain-text representation
  */
 function htmlResponseToText(html) {
-  //create converter object
+  // create converter object
   const converter = new HtmlToText();
 
   const text = converter.convert(html);
@@ -69,9 +68,8 @@ function htmlResponseToText(html) {
   return text;
 }
 
-
 module.exports = {
   waitForTimeout,
   isChatGPTLoggedIn,
-  htmlResponseToText
+  htmlResponseToText,
 };

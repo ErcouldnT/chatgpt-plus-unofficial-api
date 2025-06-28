@@ -92,7 +92,7 @@ Test workflow:
 ```json
 {
   "prompt": "Your prompt here",
-  "options": { 	// this object is optional 
+  "options": { // this object is optional
     "reason": false,
     "search": true,
     "threadId": "optional_thread_id"
