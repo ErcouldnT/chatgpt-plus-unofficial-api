@@ -6,7 +6,7 @@ const server = express();
 
 // we require app.js as it handles all the routes
 const routesHandler = require("./routes");
-const { initializePage } = require("./src/services/puppeteerServices");
+const { initializeBrowser } = require("./src/services/puppeteerServices");
 
 // app is a middleware fn which is included here i.e. it is used in server but the code is defined else where but we use it here
 server.use(routesHandler);
@@ -15,7 +15,7 @@ server.use(routesHandler);
 async function startServer() {
   try {
     // Initialize Puppeteer and the shared page before the server starts listening
-    await initializePage();
+    await initializeBrowser();
     console.warn("Shared Puppeteer page initialized successfully.");
 
     const PORT = process.env.PORT || 3001;

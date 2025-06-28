@@ -1,7 +1,7 @@
 const express = require("express");
 const { performLoginWithBasicAuth } = require("../flows/basicLogin");
 const { promptWithOptions } = require("../flows/promptFlow");
-const { getPage } = require("../services/puppeteerServices");
+const { getBrowser } = require("../services/puppeteerServices");
 const { isChatGPTLoggedIn } = require("../utils/helpers");
 
 // import logger
@@ -19,22 +19,30 @@ promptRouter.post("/", async (req, res) => {
   // retrieve input passed from client
   const { prompt, options = {} } = req.body; // defaults options to null obj
 
-  // get puppeteer page instance
-  const page = getPage();
+  const browser = getBrowser();
+  const page = await browser.newPage();
+  try {
+    if (await isChatGPTLoggedIn(page)) {
+      logger.debug(
+        "POST:/api/prompt",
+        "✅ Already signed in — skipping login flow.",
+      );
+    }
+    else {
+      logger.debug("POST:/api/prompt", "🔐 Not signed in — running login flow…");
+      await performLoginWithBasicAuth(page);
+    }
 
-  if (await isChatGPTLoggedIn(page)) {
-    logger.debug(
-      "POST:/api/prompt",
-      "✅ Already signed in — skipping login flow.",
-    );
+    const response = await promptWithOptions(page, options, prompt);
+    res.status(200).json(response);
   }
-  else {
-    logger.debug("POST:/api/prompt", "🔐 Not signed in — running login flow…");
-    await performLoginWithBasicAuth(page);
+  catch (err) {
+    logger.error("POST:/api/prompt", err);
+    res.status(500).json({ error: err.message });
   }
-
-  const response = await promptWithOptions(page, options, prompt);
-  res.status(200).json(response);
+  finally {
+    await page.close();
+  }
 });
 
 module.exports = promptRouter;
