@@ -49,12 +49,21 @@ async function openGPT() {
         "--no-sandbox", // disable sandbox for local testing
         "--disable-setuid-sandbox", // disable setuid sandbox helper
         "--disable-blink-features=AutomationControlled", // hide automation flag
+        `--window-size=1920,540`,
+        "--window-position=0,0",
+        "--disable-web-security", // allow cross-origin
+        "--disable-features=IsolateOrigins,site-per-process", // allow cross-origin
+        "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
       ],
+      ignoreDefaultArgs: ["--enable-automation"], // hide automation flag
       defaultViewport: null,
     });
 
     console.warn("🔗 Opening new page…");
     page = await browser.newPage();
+    // await page.setExtraHTTPHeaders({
+    //   "accept-language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
+    // });
 
     // -------------------------------------------------------------------------
     // 3) Authentication check

@@ -1,7 +1,8 @@
 import express from "express";
+import { performLoginWithBasicAuth } from "../flows/basicLogin.js";
 import { promptWithOptions } from "../flows/promptFlow.js";
-import { isChatGPTLoggedIn, performLoginWithBasicAuth } from "../services/authServices.js";
 import { getBrowser } from "../services/puppeteerServices.js";
+import { isChatGPTLoggedIn } from "../utils/helpers.js";
 
 // handle login Routes
 const promptRouter = express.Router();
