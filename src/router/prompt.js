@@ -1,8 +1,8 @@
 import express from "express";
-import { performLoginWithBasicAuth } from "../flows/basicLogin.js";
+// import { performLoginWithBasicAuth } from "../flows/basicLogin.js";
 import { promptWithOptions } from "../flows/promptFlow.js";
 import { getBrowser } from "../services/puppeteerServices.js";
-import { isChatGPTLoggedIn } from "../utils/helpers.js";
+// import { isChatGPTLoggedIn } from "../utils/helpers.js";
 
 // handle login Routes
 const promptRouter = express.Router();
@@ -17,13 +17,13 @@ promptRouter.post("/", async (req, res) => {
   const browser = getBrowser();
   const page = await browser.newPage();
   try {
-    if (await isChatGPTLoggedIn(page)) {
-      console.warn("✅ Prompt: ", prompt);
-    }
-    else {
-      console.warn("🔐 Not signed in — running login flow…");
-      await performLoginWithBasicAuth(page);
-    }
+    // if (await isChatGPTLoggedIn(page)) {
+    //   console.warn("✅ Prompt: ", prompt);
+    // }
+    // else {
+    //   console.warn("🔐 Not signed in — running login flow…");
+    //   await performLoginWithBasicAuth(page);
+    // }
 
     const response = await promptWithOptions(page, options, prompt);
     res.status(200).json(response);
