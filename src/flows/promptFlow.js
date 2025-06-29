@@ -46,7 +46,7 @@ export async function promptWithOptions(page, options, prompt) {
 
   // Type and submit prompt
   console.warn("✏️ Typing and submitting prompt...");
-  const promptContext = `Respond using only and only plain text—no formatting, no tables, no images, no formulas, no links, no markdown, no HTML. Just pure plain text. Prompt: `;
+  const promptContext = `Respond using only and only plain text—no formatting, no tables, no images, no formulas, no links, no markdown, no HTML. Just pure plain text. Exclude all sources and links mentioned anywhere in the response. Prompt: `;
   await editor.type(promptContext + prompt);
   await editor.press("Enter");
 
