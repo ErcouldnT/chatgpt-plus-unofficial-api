@@ -36,6 +36,24 @@ export async function initializeBrowser() {
       defaultViewport: null,
     });
 
+    // Load cookies from COOKIE_JSON env and set them in the browser context
+    let cookies = [];
+    try {
+      cookies = JSON.parse(process.env.COOKIE_JSON || "[]");
+      console.warn("🔑 Loaded cookies:", cookies);
+    }
+    catch (err) {
+      console.error("⚠️ Failed to parse COOKIE_JSON from .env:", err);
+    }
+
+    if (cookies.length) {
+      const context = browserInstance.defaultBrowserContext();
+      await context.setCookie(...cookies);
+    }
+    else {
+      console.warn("⚠️ No cookies loaded from COOKIE_JSON; proceeding without them.");
+    }
+
     console.warn("Puppeteer browser initialized.");
   }
   return browserInstance;

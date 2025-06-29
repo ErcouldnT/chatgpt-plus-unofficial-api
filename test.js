@@ -61,6 +61,31 @@ async function openGPT() {
 
     console.warn("🔗 Opening new page…");
     page = await browser.newPage();
+
+    // -----------------------------------------------------------------------
+    // Load cookies from .env
+    //
+    // The .env file should contain:
+    // COOKIE_JSON='[{"name":"SID",...}, ...]'
+    // -----------------------------------------------------------------------
+    let cookies = [];
+
+    try {
+      cookies = JSON.parse(process.env.COOKIE_JSON || "[]");
+      console.warn("🔑 Loaded cookies:", cookies);
+    }
+    catch (err) {
+      console.error("⚠️ Failed to parse COOKIE_JSON from .env:", err);
+    }
+
+    if (cookies.length) {
+      const context = browser.defaultBrowserContext();
+      await context.setCookie(...cookies);
+    }
+    else {
+      console.warn("⚠️ No cookies loaded from COOKIE_JSON; proceeding without them.");
+    }
+
     // await page.setExtraHTTPHeaders({
     //   "accept-language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
     // });
