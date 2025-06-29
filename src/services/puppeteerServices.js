@@ -1,3 +1,4 @@
+import { Buffer } from "node:buffer";
 import path from "node:path";
 import process from "node:process";
 import dotenv from "dotenv";
@@ -36,14 +37,16 @@ export async function initializeBrowser() {
       defaultViewport: null,
     });
 
-    // Load cookies from COOKIE_JSON env and set them in the browser context
+    // Load cookies from COOKIE_JSON_B64 env and set them in the browser context
     let cookies = [];
+
     try {
-      cookies = JSON.parse(process.env.COOKIE_JSON || "[]");
-      console.warn("🔑 Loaded cookies:", cookies);
+      const json = Buffer.from(process.env.COOKIE_JSON_B64, "base64").toString("utf-8");
+      cookies = JSON.parse(json);
+      console.warn("🍪 Cookies loaded from base64 string");
     }
     catch (err) {
-      console.error("⚠️ Failed to parse COOKIE_JSON from .env:", err);
+      console.warn("❌ Failed to parse COOKIE_JSON_B64:", err.message);
     }
 
     if (cookies.length) {

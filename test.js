@@ -1,3 +1,4 @@
+import { Buffer } from "node:buffer";
 import path from "node:path";
 import process from "node:process";
 import dotenv from "dotenv";
@@ -62,20 +63,15 @@ async function openGPT() {
     console.warn("🔗 Opening new page…");
     page = await browser.newPage();
 
-    // -----------------------------------------------------------------------
-    // Load cookies from .env
-    //
-    // The .env file should contain:
-    // COOKIE_JSON='[{"name":"SID",...}, ...]'
-    // -----------------------------------------------------------------------
     let cookies = [];
 
     try {
-      cookies = JSON.parse(process.env.COOKIE_JSON || "[]");
-      console.warn("🔑 Loaded cookies:", cookies);
+      const json = Buffer.from(process.env.COOKIE_JSON_B64, "base64").toString("utf-8");
+      cookies = JSON.parse(json);
+      console.warn("🍪 Cookies loaded from base64 string");
     }
     catch (err) {
-      console.error("⚠️ Failed to parse COOKIE_JSON from .env:", err);
+      console.warn("❌ Failed to parse COOKIE_JSON_B64:", err.message);
     }
 
     if (cookies.length) {
