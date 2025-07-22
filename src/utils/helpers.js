@@ -65,6 +65,23 @@ export function htmlResponseToText(html) {
   // Remove all <button> elements
   $("button").remove();
 
+  // Convert bold/italic tags before other transformations
+  // Bold → **text**, Italic → __text__
+  // Use .toArray() to avoid Cheerio's node-removal skipping bug
+  // $("b,strong")
+  //   .toArray()
+  //   .forEach((el) => {
+  //     const txt = $(el).text().trim();
+  //     $(el).replaceWith(`**${txt}**`);
+  //   });
+
+  // $("i,em")
+  //   .toArray()
+  //   .forEach((el) => {
+  //     const txt = $(el).text().trim();
+  //     $(el).replaceWith(`__${txt}__`);
+  //   });
+
   // Convert tables to text
   $("table").each((_, table) => {
     const rows = [];

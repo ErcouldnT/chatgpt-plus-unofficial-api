@@ -2,10 +2,10 @@ import process from "node:process";
 import dotenv from "dotenv";
 import express from "express";
 
+import { performLoginWithBasicAuth } from "./flows/basicLogin.js";
 import routesHandler from "./routes.js";
-import { performLoginWithBasicAuth } from "./src/flows/basicLogin.js";
-import { getBrowser, initializeBrowser } from "./src/services/puppeteerServices.js";
-import { isChatGPTLoggedIn } from "./src/utils/helpers.js";
+import { getBrowser, initializeBrowser } from "./services/puppeteerServices.js";
+import { isChatGPTLoggedIn } from "./utils/helpers.js";
 
 dotenv.config();
 

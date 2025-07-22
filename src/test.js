@@ -4,9 +4,9 @@ import process from "node:process";
 import dotenv from "dotenv";
 import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
-import { performLoginWithBasicAuth } from "./src/flows/basicLogin.js";
-import { promptWithOptions } from "./src/flows/promptFlow.js";
-import { isChatGPTLoggedIn } from "./src/utils/helpers.js";
+import { performLoginWithBasicAuth } from "./flows/basicLogin.js";
+import { promptWithOptions } from "./flows/promptFlow.js";
+import { isChatGPTLoggedIn } from "./utils/helpers.js";
 
 dotenv.config();
 
@@ -106,13 +106,14 @@ async function openGPT() {
     // We pass prompt + optional modes (`search`, `reason`) and the threadId.
     // ChatGPT will continue the conversation in the specified thread if provided.
     // -------------------------------------------------------------------------
+    const systemPrompt = `You are a helpful assistant. Answer the question based on the data you have researched`;
     const prompt = "based on researching data who is mustafa kemal ataturk?";
     const options = {
       search: true,
       // reason: true,
       // threadId: '681a6cba-c0fc-8004-977c-f34adf806988'
     };
-    const responseObject = await promptWithOptions(page, options, prompt);
+    const responseObject = await promptWithOptions(page, options, prompt, systemPrompt);
     if (responseObject === null) {
       console.error(
         "❌ No response or valid paragraph response received from ChatGPT.",

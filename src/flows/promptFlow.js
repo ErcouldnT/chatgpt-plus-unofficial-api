@@ -11,7 +11,7 @@ import { htmlResponseToText, waitForTimeout } from "../utils/helpers.js";
  * @param {string} prompt                    - The user’s prompt
  * @returns {Promise<string|null>}           - The completed response text, or null if none received
  */
-export async function promptWithOptions(page, options, prompt) {
+export async function promptWithOptions(page, options, prompt, systemPrompt) {
   let { reason, search, threadId } = options;
 
   // Navigate: reuse existing thread or start fresh
@@ -46,8 +46,8 @@ export async function promptWithOptions(page, options, prompt) {
 
   // Type and submit prompt
   console.warn("✏️ Typing and submitting prompt...");
-  const promptContext = `Respond using only and only plain text—no formatting, no tables, no images, no formulas, no links, no markdown, no HTML. Just pure plain text. Exclude all sources and links mentioned anywhere in the response. Prompt: `;
-  await editor.type(promptContext + prompt);
+  // const promptContext = `You are a helpful assistant. Answer the question based on the data you have researched`;
+  await editor.type(`${systemPrompt}: ${prompt}`);
   await editor.press("Enter");
 
   // Grab the latest article ID
@@ -87,7 +87,7 @@ export async function promptWithOptions(page, options, prompt) {
       break;
     }
     previous = text;
-    await waitForTimeout(3000); // wait for 3sec before polling the next time
+    await waitForTimeout(1000); // wait for 1 sec before polling the next time
   }
 
   if (finalText === null) {
@@ -119,6 +119,10 @@ export async function promptWithOptions(page, options, prompt) {
 
   return {
     threadId: newThreadId,
-    response: cleaned,
+    systemPrompt,
+    prompt,
+    options,
+    response: finalText,
+    cleanedResponse: cleaned,
   };
 }

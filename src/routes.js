@@ -1,8 +1,8 @@
 import cors from "cors";
 import express from "express";
 
-import { verifyApiKey } from "./src/middlewares/auth.js";
-import promptRouter from "./src/router/prompt.js";
+import { verifyApiKey } from "./middlewares/auth.js";
+import promptRouter from "./router/prompt.js";
 
 const app = express();
 
