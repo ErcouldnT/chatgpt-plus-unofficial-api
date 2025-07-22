@@ -19,4 +19,4 @@ VOLUME ["/app/chrome-user-data"]
 # run as chrome user instead of root for better security
 USER chrome
 
-CMD ["node", "server.js"]
+CMD ["node", "src/index.js"]

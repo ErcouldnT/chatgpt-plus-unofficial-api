@@ -47,7 +47,7 @@ export async function promptWithOptions(page, options, prompt, systemPrompt) {
   // Type and submit prompt
   console.warn("✏️ Typing and submitting prompt...");
   // const promptContext = `You are a helpful assistant. Answer the question based on the data you have researched`;
-  await editor.type(`${systemPrompt}: ${prompt}`);
+  await editor.type(systemPrompt ? `${systemPrompt}: ${prompt}` : prompt);
   await editor.press("Enter");
 
   // Grab the latest article ID

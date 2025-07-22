@@ -106,7 +106,7 @@ async function openGPT() {
     // We pass prompt + optional modes (`search`, `reason`) and the threadId.
     // ChatGPT will continue the conversation in the specified thread if provided.
     // -------------------------------------------------------------------------
-    const systemPrompt = `You are a helpful assistant. Answer the question based on the data you have researched`;
+    const systemPrompt = null;
     const prompt = "based on researching data who is mustafa kemal ataturk?";
     const options = {
       search: true,
