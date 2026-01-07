@@ -17,43 +17,61 @@ export async function promptWithOptions(page, options, prompt, systemPrompt) {
   // Navigate: reuse existing thread or start fresh
   const base = "https://chatgpt.com";
   const url = threadId ? `${base}/c/${threadId}` : base;
-  console.warn("🌐 Loading URL:", url);
-  await page.goto(url, { waitUntil: "domcontentloaded", timeout: 120_000 }); // wait for DOM to load for a 120sec
+  console.warn(`🌐 [promptFlow] Navigating to: ${url}`);
+  await page.goto(url, { waitUntil: "load", timeout: 120_000 });
 
-  // Toggle modes if requested
-  if (reason || search) {
-    console.warn("☰ Toggle Prompt tools...");
+  if (threadId) {
+    console.warn("⏳ Waiting for existing thread context...");
     try {
-      await page.locator("button::-p-aria(Choose tool)").click();
+      await page.waitForSelector("div.markdown", { timeout: 15000 });
     } catch (e) {
-      console.warn("⚠️ Could not find 'Choose tool' button, skipping tool toggle.");
+      console.warn("⚠️ Content wait timeout (may be a new or slow thread)");
+    }
+  }
+  await new Promise(r => setTimeout(r, 2000));
+
+  // Toggle modes (Only on NEW threads)
+  if (!threadId && (reason || search)) {
+    console.warn("☰ Toggling tools...");
+    try {
+      await page.waitForSelector("button::-p-aria(Choose tool)");
+      await page.locator("button::-p-aria(Choose tool)").click();
+      if (reason) {
+        await page.locator("div::-p-text(Think)").click();
+        search = false;
+      }
+      if (search) {
+        await page.locator("div::-p-text(Search)").click();
+      }
+      await new Promise(r => setTimeout(r, 1000));
+    } catch (e) {
+      console.warn("⚠️ Tool toggle failed, continuing with defaults.");
     }
   }
 
-  if (reason) {
-    console.warn("🔍 Enabling Reason mode...");
-    await page.locator("div::-p-text(Think)").click();
-    search = false;
-  }
-  if (search) {
-    console.warn("🔍 Enabling Search mode...");
-    await page.locator("div::-p-text(Search)").click();
-  }
-
-  // Prepare and clear editor
-  console.warn("✏️ Clearing editor...");
+  // Wait for editor to be ready
   const editor = await page.waitForSelector("#prompt-textarea");
+
+  // Focus and wait for stability
   await editor.click();
-  await editor.evaluate((el) => {
-    el.focus();
-    document.execCommand("selectAll", false, null);
-    document.execCommand("delete", false, null);
-  });
+  await new Promise(r => setTimeout(r, 2000));
+
+  // Clear editor for new threads
+  if (!threadId) {
+    console.warn("✏️ Clearing editor...");
+    await editor.evaluate((el) => {
+      el.focus();
+      document.execCommand("selectAll", false, null);
+      document.execCommand("delete", false, null);
+    });
+    await new Promise(r => setTimeout(r, 1000));
+  }
 
   // Type and submit prompt
   console.warn("✏️ Typing and submitting prompt...");
-  // const promptContext = `You are a helpful assistant. Answer the question based on the data you have researched.`;
-  await editor.type(systemPrompt ? `${systemPrompt} Prompt: ${prompt}` : prompt);
+  const finalPrompt = systemPrompt ? `${systemPrompt} | Prompt: ${prompt}` : prompt;
+
+  await editor.type(finalPrompt, { delay: 10 });
   await editor.press("Enter");
 
   // Grab the latest article ID
@@ -119,9 +137,10 @@ export async function promptWithOptions(page, options, prompt, systemPrompt) {
   }
 
   // After the prompt, re-capture the actual thread from the URL
-  const match = page.url().match(/\/c\/([0-9a-f\-]+)/);
+  const currentUrl = page.url();
+  const match = currentUrl.match(/\/c\/([0-9a-f\-]+)/);
   const newThreadId = match ? match[1] : null;
-  console.warn("Resolved threadId:", newThreadId);
+  console.warn(`Resolved threadId: ${newThreadId} (Full URL: ${currentUrl})`);
 
   return {
     threadId: newThreadId,

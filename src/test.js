@@ -1,5 +1,3 @@
-// import fetch from "node-fetch";
-
 const BASE_URL = "http://localhost:3001";
 
 async function testOpenAIChat() {
@@ -65,6 +63,82 @@ async function testSystemPrompt() {
     }
 }
 
+async function testAssistantsAPI() {
+    console.log("\n--- Testing Assistants API (Stateful Flow) ---");
+    const urlBase = `${BASE_URL}/v1`;
+
+    try {
+        // 1. Create Thread
+        const threadRes = await fetch(`${urlBase}/threads`, { method: "POST" });
+        const thread = await threadRes.json();
+        console.log("✅ Thread Created:", thread.id);
+
+        // 2. Add Message
+        await fetch(`${urlBase}/threads/${thread.id}/messages`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ role: "user", content: "My secret code is 8888. Tell me 'OK' if you got it." })
+        });
+
+        // 3. Run
+        const runRes = await fetch(`${urlBase}/threads/${thread.id}/runs`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ assistant_id: "asst_test" })
+        });
+        const run = await runRes.json();
+        console.log("✅ Run Created:", run.id);
+
+        // 4. Poll
+        let currentRun = run;
+        while (currentRun.status === "queued" || currentRun.status === "in_progress") {
+            process.stdout.write(".");
+            await new Promise(r => setTimeout(r, 2000));
+            const pollRes = await fetch(`${urlBase}/threads/${thread.id}/runs/${run.id}`);
+            currentRun = await pollRes.json();
+        }
+        console.log("\n✅ Run Finished:", currentRun.status);
+
+        // 5. Get Messages
+        const msgsRes = await fetch(`${urlBase}/threads/${thread.id}/messages`);
+        const msgs = await msgsRes.json();
+        const lastMsg = msgs.data[msgs.data.length - 1];
+        console.log("✅ Response:", lastMsg.content[0].text.value);
+
+        // 6. Test Continuity (Turn 2)
+        console.log("\n--- Testing Continuity (Second Turn) ---");
+        await new Promise(r => setTimeout(r, 3000));
+        await fetch(`${urlBase}/threads/${thread.id}/messages`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ role: "user", content: "What is my secret code? Answer with the number only." })
+        });
+
+        const run2Res = await fetch(`${urlBase}/threads/${thread.id}/runs`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ assistant_id: "asst_test" })
+        });
+        let run2 = await run2Res.json();
+
+        while (run2.status === "queued" || run2.status === "in_progress") {
+            process.stdout.write(".");
+            await new Promise(r => setTimeout(r, 2000));
+            const poll2Res = await fetch(`${urlBase}/threads/${thread.id}/runs/${run2.id}`);
+            run2 = await poll2Res.json();
+        }
+        console.log("\n✅ Run 2 Finished:", run2.status);
+
+        const msgs2Res = await fetch(`${urlBase}/threads/${thread.id}/messages`);
+        const msgs2 = await msgs2Res.json();
+        const lastMsg2 = msgs2.data[msgs2.data.length - 1];
+        console.log("✅ Continuity Response:", lastMsg2.content[0].text.value);
+
+    } catch (error) {
+        console.error("❌ Error:", error.message);
+    }
+}
+
 async function testLegacyPrompt() {
     console.log("\n--- Testing Legacy Endpoint (/api/prompt) ---");
     const url = `${BASE_URL}/api/prompt`;
@@ -79,7 +153,7 @@ async function testLegacyPrompt() {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "ERKUT-API-KEY": process.env.ERKUT_API_KEY || "dummy_key_in_dev" // Dev mode ignores key anyway
+                "ERKUT-API-KEY": process.env.ERKUT_API_KEY || "dummy_key_in_dev"
             },
             body: JSON.stringify(body)
         });
@@ -99,13 +173,11 @@ async function testLegacyPrompt() {
 
 async function runTests() {
     await testOpenAIChat();
-    console.log("Waiting 5s before next test...");
-    await new Promise(r => setTimeout(r, 5000));
-
+    await new Promise(r => setTimeout(r, 2000));
     await testSystemPrompt();
-    console.log("Waiting 5s before next test...");
-    await new Promise(r => setTimeout(r, 5000));
-
+    await new Promise(r => setTimeout(r, 2000));
+    await testAssistantsAPI();
+    await new Promise(r => setTimeout(r, 2000));
     await testLegacyPrompt();
 }
 

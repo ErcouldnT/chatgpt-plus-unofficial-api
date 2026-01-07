@@ -5,6 +5,7 @@
 ## 🚀 Features
 
 -   **OpenAI-Compatible Endpoint**: `POST /v1/chat/completions` (Drop-in replacement for official API).
+-   **Assistants API (Stateful)**: Supports Threads, Messages, and Runs (`/v1/threads`).
 -   **Legacy Endpoint**: `POST /api/prompt` for direct control.
 -   **Authentication**: Supports standard `Authorization: Bearer <KEY>` and custom header `ERKUT-API-KEY`.
 -   **Tools Support**: Automates "Search" and "Reasoning" (O1) modes.
@@ -83,7 +84,19 @@ Compatible with standard OpenAI clients.
 
 ---
 
-### 2. Legacy Prompt Endpoint
+### 2. Assistants API (Stateful)
+Compatible with the OpenAI Assistants spec. Useful for n8n "OpenAI Assistant" node.
+
+**Flow**:
+1. `POST /v1/threads` -> returns `thread_id`
+2. `POST /v1/threads/:id/messages` -> add user message
+3. `POST /v1/threads/:id/runs` -> trigger execution (async)
+4. `GET /v1/threads/:id/runs/:runId` -> poll for `completed` status
+5. `GET /v1/threads/:id/messages` -> get list of messages including assistant response
+
+---
+
+### 3. Legacy Prompt Endpoint
 **Endpoint**: `POST /api/prompt`
 
 **Headers**:
@@ -96,8 +109,8 @@ Compatible with standard OpenAI clients.
   "prompt": "What is the capital of Turkey?",
   "systemPrompt": "Optional override for system prompt",
   "options": {
-    "search": true,  // Enable web search
-    "reason": false, // Enable reasoning
+    "search": false,
+    "reason": false,
     "threadId": "optional-thread-uuid"
   }
 }
@@ -105,7 +118,7 @@ Compatible with standard OpenAI clients.
 
 ## 🧪 Testing
 
-Run the comprehensive test suite (checks both endpoints and system prompts):
+Run the comprehensive test suite (checks both endpoints, system prompts, and assistants):
 
 ```bash
 npm test

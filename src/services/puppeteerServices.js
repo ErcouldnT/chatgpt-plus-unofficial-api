@@ -57,6 +57,8 @@ export async function initializeBrowser() {
       console.warn("⚠️ No cookies loaded from COOKIE_JSON; proceeding without them.");
     }
 
+    console.warn("⏳ Waiting 5 seconds for browser to stabilize...");
+    await new Promise(r => setTimeout(r, 5000));
     console.warn("Puppeteer browser initialized.");
   }
   return browserInstance;
