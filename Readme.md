@@ -69,7 +69,7 @@ Compatible with standard OpenAI clients.
 **Body**:
 ```json
 {
-  "model": "gpt-4", 
+  "model": "gpt-4",
   "messages": [
     { "role": "system", "content": "You are a pirate." },
     { "role": "user", "content": "Hello!" }

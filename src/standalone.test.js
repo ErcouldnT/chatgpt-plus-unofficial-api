@@ -24,7 +24,7 @@ async function openGPT() {
   let page;
 
   try {
-    console.warn("▶️ Launching browser with persistent profile…");
+    console.log("▶️ Launching browser with persistent profile…");
 
     // -------------------------------------------------------------------------
     // 1) Configure persistent user data
@@ -44,7 +44,7 @@ async function openGPT() {
     // - defaultViewport   → null to use full window dimensions
     // -------------------------------------------------------------------------
     browser = await puppeteer.launch({
-      headless: process.env.NODE_ENV !== "development",
+      headless: false,
       userDataDir,
       args: [
         "--no-sandbox", // disable sandbox for local testing
@@ -60,7 +60,7 @@ async function openGPT() {
       defaultViewport: null,
     });
 
-    console.warn("🔗 Opening new page…");
+    console.log("🔗 Opening new page…");
     page = await browser.newPage();
 
     let cookies = [];
@@ -68,10 +68,10 @@ async function openGPT() {
     try {
       const json = Buffer.from(process.env.COOKIE_JSON_B64, "base64").toString("utf-8");
       cookies = JSON.parse(json);
-      console.warn("🍪 Cookies loaded from base64 string");
+      console.log("🍪 Cookies loaded from base64 string");
     }
     catch (err) {
-      console.warn("❌ Failed to parse COOKIE_JSON_B64:", err.message);
+      console.log("❌ Failed to parse COOKIE_JSON_B64:", err.message);
     }
 
     if (cookies.length) {
@@ -79,7 +79,7 @@ async function openGPT() {
       await context.setCookie(...cookies);
     }
     else {
-      console.warn("⚠️ No cookies loaded from COOKIE_JSON; proceeding without them.");
+      console.log("⚠️ No cookies loaded from COOKIE_JSON; proceeding without them.");
     }
 
     // await page.setExtraHTTPHeaders({
@@ -93,10 +93,10 @@ async function openGPT() {
     // basic email & pass auth login flow. This avoids unnecessary re-authentication.
     // -------------------------------------------------------------------------
     if (await isChatGPTLoggedIn(page)) {
-      console.warn("✅ Already signed in — skipping login flow.");
+      console.log("✅ Already signed in — skipping login flow.");
     }
     else {
-      console.warn("🔐 Not signed in — running login flow…");
+      console.log("🔐 Not signed in — running login flow…");
       await performLoginWithBasicAuth(page);
     }
 
@@ -122,12 +122,12 @@ async function openGPT() {
     }
     else {
       const { threadId: returnedThreadId, response } = responseObject;
-      console.warn("📬 ChatGPT replied:", response);
-      console.warn("📌 Conversation ID:", returnedThreadId);
+      console.log("📬 ChatGPT replied:", response);
+      console.log("📌 Conversation ID:", returnedThreadId);
       // proceed with valid response and potentially save threadId for next run
     }
 
-    console.warn("✅ Automation flow complete.");
+    console.log("✅ Automation flow complete.");
   }
   catch (error) {
     // -------------------------------------------------------------------------
@@ -143,7 +143,7 @@ async function openGPT() {
     // Finalization: we leave the browser open so you can inspect the session.
     // To close it programmatically, uncomment the line below.
     // -------------------------------------------------------------------------
-    console.warn("🏁 Script finished.");
+    console.log("🏁 Script finished.");
     // await browser?.close();
   }
 }

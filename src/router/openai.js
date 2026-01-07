@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import process from "node:process";
 import express from "express";
 import { promptWithOptions } from "../flows/promptFlow.js";
 import { getBrowser } from "../services/puppeteerServices.js";
@@ -7,10 +8,10 @@ import { AppError } from "../utils/errors.js";
 const openaiRouter = express.Router();
 
 openaiRouter.post("/chat/completions", async (req, res, next) => {
-  console.warn("POST:/v1/chat/completions | Received request");
+  console.log("POST:/v1/chat/completions | Received request");
 
   try {
-    const { messages, model, stream, threadId: bodyThreadId } = req.body;
+    const { messages, model, threadId: bodyThreadId } = req.body;
 
     // Validate messages
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
@@ -23,7 +24,6 @@ openaiRouter.post("/chat/completions", async (req, res, next) => {
       throw new AppError("No message with role 'user' found.", 400, "invalid_request_error", "messages");
     }
 
-    const start = Date.now();
     const prompt = lastUserMessage.content;
     const systemPromptMessage = messages.find(m => m.role === "system");
     const systemPrompt = systemPromptMessage ? systemPromptMessage.content : process.env.SYSTEM_PROMPT;
@@ -38,7 +38,7 @@ openaiRouter.post("/chat/completions", async (req, res, next) => {
       threadId: bodyThreadId || undefined,
     };
 
-    console.warn(`Attempting to send prompt to ChatGPT. Model: ${model}, Options:`, options);
+    console.log(`Attempting to send prompt to ChatGPT. Model: ${model}, Options:`, options);
 
     const browser = await getBrowser();
     const page = await browser.newPage();
@@ -46,7 +46,8 @@ openaiRouter.post("/chat/completions", async (req, res, next) => {
     let result;
     try {
       result = await promptWithOptions(page, options, prompt, systemPrompt);
-    } finally {
+    }
+    finally {
       await page.close();
     }
 
@@ -62,7 +63,7 @@ openaiRouter.post("/chat/completions", async (req, res, next) => {
     const response = {
       id: completionId,
       object: "chat.completion",
-      created: created,
+      created,
       model: model || "gpt-4-unofficial",
       system_fingerprint: result.threadId, // Return threadId here so client can see it
       choices: [
@@ -79,8 +80,8 @@ openaiRouter.post("/chat/completions", async (req, res, next) => {
       usage: {
         prompt_tokens: -1, // Not calculated
         completion_tokens: -1,
-        total_tokens: -1
-      }
+        total_tokens: -1,
+      },
     };
 
     // If the client requested additional fields (like threadId in root), we could add them,
@@ -89,8 +90,8 @@ openaiRouter.post("/chat/completions", async (req, res, next) => {
     res.setHeader("X-ChatGPT-Thread-Id", result.threadId || "");
 
     res.json(response);
-
-  } catch (error) {
+  }
+  catch (error) {
     next(error);
   }
 });

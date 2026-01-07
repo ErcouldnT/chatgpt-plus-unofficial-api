@@ -13,7 +13,7 @@ let browserInstance = null;
 
 export async function initializeBrowser() {
   if (!browserInstance) {
-    console.warn("▶️ Launching browser with persistent profile…");
+    console.log("▶️ Launching browser with persistent profile…");
 
     const userDataDir = path.join(path.resolve(), "chrome-user-data");
 
@@ -43,10 +43,10 @@ export async function initializeBrowser() {
     try {
       const json = Buffer.from(process.env.COOKIE_JSON_B64, "base64").toString("utf-8");
       cookies = JSON.parse(json);
-      console.warn("🍪 Cookies loaded from base64 string");
+      console.log("🍪 Cookies loaded from base64 string");
     }
     catch (err) {
-      console.warn("❌ Failed to parse COOKIE_JSON_B64:", err.message);
+      console.log("❌ Failed to parse COOKIE_JSON_B64:", err.message);
     }
 
     if (cookies.length) {
@@ -54,16 +54,16 @@ export async function initializeBrowser() {
       await context.setCookie(...cookies);
     }
     else {
-      console.warn("⚠️ No cookies loaded from COOKIE_JSON; proceeding without them.");
+      console.log("⚠️ No cookies loaded from COOKIE_JSON; proceeding without them.");
     }
 
-    console.warn("⏳ Waiting 5 seconds for browser to stabilize...");
+    console.log("⏳ Waiting 5 seconds for browser to stabilize...");
     await new Promise(r => setTimeout(r, 5000));
-    console.warn("Puppeteer browser initialized.");
+    console.log("Puppeteer browser initialized.");
 
     // Handle browser disconnection
     browserInstance.on("disconnected", () => {
-      console.warn("❌ Puppeteer browser disconnected! Clearing instance...");
+      console.log("❌ Puppeteer browser disconnected! Clearing instance...");
       browserInstance = null;
     });
   }
@@ -72,7 +72,7 @@ export async function initializeBrowser() {
 
 export async function getBrowser() {
   if (!browserInstance || !browserInstance.connected) {
-    console.warn("⚠️ Browser instance missing or disconnected. Re-initializing...");
+    console.log("⚠️ Browser instance missing or disconnected. Re-initializing...");
     browserInstance = null;
     await initializeBrowser();
   }
@@ -81,7 +81,7 @@ export async function getBrowser() {
 
 export async function closeBrowser() {
   if (browserInstance) {
-    console.warn("Closing browser...");
+    console.log("Closing browser...");
     await browserInstance.close();
     browserInstance = null;
   }

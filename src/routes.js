@@ -2,11 +2,11 @@ import cors from "cors";
 import express from "express";
 
 import { verifyApiKey } from "./middlewares/auth.js";
-import openaiRouter from "./router/openai.js";
-import assistantsRouter from "./router/assistants.js";
-import promptRouter from "./router/prompt.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 import { notFound } from "./middlewares/notFound.js";
+import assistantsRouter from "./router/assistants.js";
+import openaiRouter from "./router/openai.js";
+import promptRouter from "./router/prompt.js";
 
 const app = express();
 

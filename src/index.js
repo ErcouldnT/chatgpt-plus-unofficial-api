@@ -23,21 +23,21 @@ async function startServer() {
     const page = await browser.newPage();
     try {
       if (await isChatGPTLoggedIn(page)) {
-        console.warn("✅ Already signed in — skipping login flow.");
+        console.log("✅ Already signed in — skipping login flow.");
       }
       else {
-        console.warn("🔐 Not signed in — running login flow…");
+        console.log("🔐 Not signed in — running login flow…");
         await performLoginWithBasicAuth(page);
       }
-      console.warn("Shared Puppeteer page initialized and authenticated successfully.");
+      console.log("Shared Puppeteer page initialized and authenticated successfully.");
     }
     finally {
       await page.close();
     }
     const PORT = process.env.PORT || 3001;
     server.listen(PORT, "0.0.0.0", () => {
-      console.warn(`📺 Server is running on http://0.0.0.0:${PORT}`);
-      console.warn(
+      console.log(`📺 Server is running on http://0.0.0.0:${PORT}`);
+      console.log(
         "🌐 Puppeteer service is active, browser is ready and authenticated for API routes.\n",
       );
     });

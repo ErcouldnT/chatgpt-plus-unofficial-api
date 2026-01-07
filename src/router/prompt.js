@@ -1,3 +1,4 @@
+import process from "node:process";
 import express from "express";
 // import { performLoginWithBasicAuth } from "../flows/basicLogin.js";
 import { promptWithOptions } from "../flows/promptFlow.js";
@@ -9,7 +10,7 @@ const promptRouter = express.Router();
 
 // handle POST request for login
 promptRouter.post("/", async (req, res, next) => {
-  console.warn("POST:/api/prompt | In prompt post request...");
+  console.log("POST:/api/prompt | In prompt post request...");
 
   // retrieve input passed from client
   const { prompt, options = {}, systemPrompt = process.env.SYSTEM_PROMPT } = req.body; // defaults options to null obj

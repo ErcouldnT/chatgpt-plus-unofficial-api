@@ -12,27 +12,29 @@ import { htmlResponseToText, waitForTimeout } from "../utils/helpers.js";
  * @returns {Promise<string|null>}           - The completed response text, or null if none received
  */
 export async function promptWithOptions(page, options, prompt, systemPrompt) {
-  let { reason, search, threadId } = options;
+  const { reason, threadId } = options;
 
   // Navigate: reuse existing thread or start fresh
   const base = "https://chatgpt.com";
   const url = threadId ? `${base}/c/${threadId}` : base;
-  console.warn(`🌐 [promptFlow] Navigating to: ${url}`);
+  console.log(`🌐 [promptFlow] Navigating to: ${url}`);
   await page.goto(url, { waitUntil: "load", timeout: 120_000 });
 
   if (threadId) {
-    console.warn("⏳ Waiting for existing thread context...");
+    console.log("⏳ Waiting for existing thread context...");
     try {
       await page.waitForSelector("div.markdown", { timeout: 15000 });
-    } catch (e) {
-      console.warn("⚠️ Content wait timeout (may be a new or slow thread)");
+    }
+    catch {
+      console.log("⚠️ Content wait timeout (may be a new or slow thread)");
     }
   }
   await new Promise(r => setTimeout(r, 2000));
 
+  /*
   // Toggle modes (Only on NEW threads)
   if (!threadId && (reason || search)) {
-    console.warn("☰ Toggling tools...");
+    console.log("☰ Toggling tools...");
     try {
       await page.waitForSelector("button::-p-aria(Choose tool)");
       await page.locator("button::-p-aria(Choose tool)").click();
@@ -44,10 +46,12 @@ export async function promptWithOptions(page, options, prompt, systemPrompt) {
         await page.locator("div::-p-text(Search)").click();
       }
       await new Promise(r => setTimeout(r, 1000));
-    } catch (e) {
-      console.warn("⚠️ Tool toggle failed, continuing with defaults.");
+    }
+    catch (e) {
+      console.log("⚠️ Tool toggle failed, continuing with defaults.");
     }
   }
+  */
 
   // Wait for editor to be ready
   const editor = await page.waitForSelector("#prompt-textarea");
@@ -58,7 +62,7 @@ export async function promptWithOptions(page, options, prompt, systemPrompt) {
 
   // Clear editor for new threads
   if (!threadId) {
-    console.warn("✏️ Clearing editor...");
+    console.log("✏️ Clearing editor...");
     await editor.evaluate((el) => {
       el.focus();
       document.execCommand("selectAll", false, null);
@@ -68,14 +72,14 @@ export async function promptWithOptions(page, options, prompt, systemPrompt) {
   }
 
   // Type and submit prompt
-  console.warn("✏️ Typing and submitting prompt...");
+  console.log("✏️ Typing and submitting prompt...");
   const finalPrompt = systemPrompt ? `${systemPrompt} | Prompt: ${prompt}` : prompt;
 
   await editor.type(finalPrompt);
   await editor.press("Enter");
 
   // Grab the latest article ID
-  console.warn("⏳ Waiting briefly for response container to appear…");
+  console.log("⏳ Waiting briefly for response container to appear…");
   await waitForTimeout(1000);
   const ids = await page.$$eval("article", els =>
     els.map(a => a.dataset.testid));
@@ -86,7 +90,7 @@ export async function promptWithOptions(page, options, prompt, systemPrompt) {
   await page.waitForSelector(mdSelector, { timeout: 600_000 }); // wait to response container for 10 minutes or 600 secs
 
   // Poll until the text stops changing
-  console.warn("🕒 Polling response until stable…");
+  console.log("🕒 Polling response until stable…");
   let previous = "";
   let finalText = null;
 
@@ -100,7 +104,7 @@ export async function promptWithOptions(page, options, prompt, systemPrompt) {
       ? await handle.evaluate(el => el.textContent.trim())
       : "";
 
-    console.warn(
+    console.log(
       `🕒 Poll #${i + 1}:`,
       text ? `${text.slice(0, 50)}…` : "[empty]",
     );
@@ -115,7 +119,7 @@ export async function promptWithOptions(page, options, prompt, systemPrompt) {
   }
 
   if (finalText === null) {
-    console.warn(
+    console.log(
       "⚠️ Response never stabilized; returning last received text (if any).",
     );
     finalText = previous || null; // empty string becomes null
@@ -125,12 +129,12 @@ export async function promptWithOptions(page, options, prompt, systemPrompt) {
   const cleaned = htmlResponseToText(finalText);
 
   if (cleaned === null) {
-    console.warn(
+    console.log(
       "⚠️ Failed to parse text content form HTML.",
     );
   }
   else {
-    console.warn(
+    console.log(
       "🎯 Cleaned response:",
       `${cleaned.slice(0, 50)}....`,
     );
@@ -140,7 +144,7 @@ export async function promptWithOptions(page, options, prompt, systemPrompt) {
   const currentUrl = page.url();
   const match = currentUrl.match(/\/c\/([0-9a-f\-]+)/);
   const newThreadId = match ? match[1] : null;
-  console.warn(`Resolved threadId: ${newThreadId} (Full URL: ${currentUrl})`);
+  console.log(`Resolved threadId: ${newThreadId} (Full URL: ${currentUrl})`);
 
   return {
     threadId: newThreadId,

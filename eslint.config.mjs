@@ -7,6 +7,7 @@ export default antfu({
     quotes: "double",
   },
   rules: {
+    "no-console": ["error", { allow: ["log", "warn", "error"] }],
     "@stylistic/member-delimiter-style": [
       "error",
       {
