@@ -82,38 +82,80 @@ export async function promptWithOptions(page, options, prompt, systemPrompt) {
   console.log("⏳ Waiting briefly for response container to appear…");
   await waitForTimeout(1000);
   const ids = await page.$$eval("article", els =>
-    els.map(a => a.dataset.testid));
+    els.map(a => a.dataset.testid).filter(id => !!id));
   const latestId = ids.pop();
-  const mdSelector = `article[data-testid="${latestId}"] div[data-message-author-role="assistant"] div.markdown`;
 
-  // Ensure the .markdown div exists
-  await page.waitForSelector(mdSelector, { timeout: 600_000 }); // wait to response container for 10 minutes or 600 secs
+  // Primary selector using the latest article ID, fallback to last assistant message
+  const mdSelector = latestId
+    ? `article[data-testid="${latestId}"] div[data-message-author-role="assistant"] div.markdown`
+    : `article:last-of-type div[data-message-author-role="assistant"] div.markdown`;
+
+  const thinkingSelector = latestId
+    ? `article[data-testid="${latestId}"] div.mb-2.last\\:mb-0`
+    : `article:last-of-type div.mb-2.last\\:mb-0`;
+
+  const errorSelector = "div.text-red-500, div.bg-red-500, .alert-error";
+
+  // Ensure the .markdown div or a thinking indicator exists
+  console.log(`⏳ Waiting for response container (${mdSelector})…`);
+  try {
+    await page.waitForSelector(`${mdSelector}, ${thinkingSelector}`, { timeout: 60_000 });
+  }
+  catch (e) {
+    console.log("⚠️ Initial response container not found within 60s. Continuing to poll anyway.");
+  }
 
   // Poll until the text stops changing
   console.log("🕒 Polling response until stable…");
   let previous = "";
   let finalText = null;
+  let emptyPollCount = 0;
+  const MAX_EMPTY_POLLS = reason ? 120 : 60; // Allow more empty polls for reasoning mode
 
   const POLL_LIMIT = reason ? 600 : 300; // if reason mode poll for 10min else poll for 5min
 
   for (let i = 0; i < POLL_LIMIT; i++) {
-    // polls up to POLL_LIMIT to account for streaming response
+    // Check for obvious UI errors
+    const errorExists = await page.$(errorSelector);
+    if (errorExists) {
+      const errorText = await errorExists.evaluate(el => el.textContent.trim());
+      console.log(`❌ ChatGPT error detected: ${errorText}`);
+      break;
+    }
+
+    // Check for thinking state
+    const isThinking = await page.$(thinkingSelector);
+
     // get text content from the response container
     const handle = await page.$(mdSelector);
     const text = handle
       ? await handle.evaluate(el => el.textContent.trim())
       : "";
 
-    console.log(
-      `🕒 Poll #${i + 1}:`,
-      text ? `${text.slice(0, 50)}…` : "[empty]",
-    );
+    if (!text) {
+      emptyPollCount++;
+      const statusMessage = isThinking ? "[thinking...]" : "[empty]";
+      console.log(`🕒 Poll #${i + 1}: ${statusMessage}`);
 
-    if (text && text === previous) {
-      // break the polling if the entire response is returned
-      finalText = text;
-      break;
+      if (emptyPollCount >= MAX_EMPTY_POLLS && !isThinking) {
+        console.log("⚠️ Too many empty polls without thinking state. Exiting.");
+        break;
+      }
     }
+    else {
+      emptyPollCount = 0; // reset if we actually got text
+      console.log(
+        `🕒 Poll #${i + 1}:`,
+        `${text.slice(0, 50).replace(/\n/g, " ")}…`,
+      );
+
+      if (text === previous) {
+        // break the polling if the entire response is returned and stabilized
+        finalText = text;
+        break;
+      }
+    }
+
     previous = text;
     await waitForTimeout(1000); // wait for 1 sec before polling the next time
   }
@@ -128,15 +170,14 @@ export async function promptWithOptions(page, options, prompt, systemPrompt) {
   // parse text from html content
   const cleaned = htmlResponseToText(finalText);
 
-  if (cleaned === null) {
+  if (cleaned === null || cleaned === "") {
     console.log(
-      "⚠️ Failed to parse text content form HTML.",
+      "⚠️ Failed to parse text content from HTML or response was empty.",
     );
   }
   else {
     console.log(
-      "🎯 Cleaned response:",
-      `${cleaned.slice(0, 50)}....`,
+      "🎯 Cleaned response captured.",
     );
   }
 

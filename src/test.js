@@ -1,7 +1,16 @@
 import process from "node:process";
+import dotenv from "dotenv";
 import { waitForTimeout } from "./utils/helpers.js";
 
+dotenv.config();
+
 const BASE_URL = "http://localhost:3001";
+const API_KEY = process.env.ERKUT_API_KEY || "dummy_key_in_dev";
+
+const GLOBAL_HEADERS = {
+  "Content-Type": "application/json",
+  "Authorization": `Bearer ${API_KEY}`,
+};
 
 async function testOpenAIChat() {
   console.log("\n--- Testing OpenAI Endpoint (/v1/chat/completions) ---");
@@ -17,7 +26,7 @@ async function testOpenAIChat() {
     const start = Date.now();
     const response = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: GLOBAL_HEADERS,
       body: JSON.stringify(body),
     });
     const data = await response.json();
@@ -51,7 +60,7 @@ async function testSystemPrompt() {
     const start = Date.now();
     const response = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: GLOBAL_HEADERS,
       body: JSON.stringify(body),
     });
     const data = await response.json();
@@ -76,21 +85,24 @@ async function testAssistantsAPI() {
 
   try {
     // 1. Create Thread
-    const threadRes = await fetch(`${urlBase}/threads`, { method: "POST" });
+    const threadRes = await fetch(`${urlBase}/threads`, {
+      method: "POST",
+      headers: GLOBAL_HEADERS,
+    });
     const thread = await threadRes.json();
     console.log("✅ Thread Created:", thread.id);
 
     // 2. Add Message
     await fetch(`${urlBase}/threads/${thread.id}/messages`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: GLOBAL_HEADERS,
       body: JSON.stringify({ role: "user", content: "My secret code is 8888. Tell me 'OK' if you got it." }),
     });
 
     // 3. Run
     const runRes = await fetch(`${urlBase}/threads/${thread.id}/runs`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: GLOBAL_HEADERS,
       body: JSON.stringify({ assistant_id: "asst_test" }),
     });
     const run = await runRes.json();
@@ -101,13 +113,13 @@ async function testAssistantsAPI() {
     while (currentRun.status === "queued" || currentRun.status === "in_progress") {
       process.stdout.write(".");
       await waitForTimeout(2000);
-      const pollRes = await fetch(`${urlBase}/threads/${thread.id}/runs/${run.id}`);
+      const pollRes = await fetch(`${urlBase}/threads/${thread.id}/runs/${run.id}`, { headers: GLOBAL_HEADERS });
       currentRun = await pollRes.json();
     }
     console.log("\n✅ Run Finished:", currentRun.status);
 
     // 5. Get Messages
-    const msgsRes = await fetch(`${urlBase}/threads/${thread.id}/messages`);
+    const msgsRes = await fetch(`${urlBase}/threads/${thread.id}/messages`, { headers: GLOBAL_HEADERS });
     const msgs = await msgsRes.json();
     const lastMsg = msgs.data[msgs.data.length - 1];
     console.log("✅ Response:", lastMsg.content[0].text.value);
@@ -117,13 +129,13 @@ async function testAssistantsAPI() {
     await waitForTimeout(3000);
     await fetch(`${urlBase}/threads/${thread.id}/messages`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: GLOBAL_HEADERS,
       body: JSON.stringify({ role: "user", content: "What is my secret code? Answer with the number only." }),
     });
 
     const run2Res = await fetch(`${urlBase}/threads/${thread.id}/runs`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: GLOBAL_HEADERS,
       body: JSON.stringify({ assistant_id: "asst_test" }),
     });
     let run2 = await run2Res.json();
@@ -131,12 +143,12 @@ async function testAssistantsAPI() {
     while (run2.status === "queued" || run2.status === "in_progress") {
       process.stdout.write(".");
       await waitForTimeout(2000);
-      const poll2Res = await fetch(`${urlBase}/threads/${thread.id}/runs/${run2.id}`);
+      const poll2Res = await fetch(`${urlBase}/threads/${thread.id}/runs/${run2.id}`, { headers: GLOBAL_HEADERS });
       run2 = await poll2Res.json();
     }
     console.log("\n✅ Run 2 Finished:", run2.status);
 
-    const msgs2Res = await fetch(`${urlBase}/threads/${thread.id}/messages`);
+    const msgs2Res = await fetch(`${urlBase}/threads/${thread.id}/messages`, { headers: GLOBAL_HEADERS });
     const msgs2 = await msgs2Res.json();
     const lastMsg2 = msgs2.data[msgs2.data.length - 1];
     const finalResponse2 = lastMsg2.content[0].text.value;
@@ -166,10 +178,7 @@ async function testLegacyPrompt() {
     const start = Date.now();
     const response = await fetch(url, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "ERKUT-API-KEY": process.env.ERKUT_API_KEY || "dummy_key_in_dev",
-      },
+      headers: GLOBAL_HEADERS,
       body: JSON.stringify(body),
     });
     const data = await response.json();
@@ -192,7 +201,9 @@ async function testNotFound() {
   console.log("\n--- Testing 404 Not Found Handler ---");
   const url = `${BASE_URL}/v1/invalid-route-name`;
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      headers: GLOBAL_HEADERS,
+    });
     const data = await response.json();
     console.log(`Status: ${response.status}`);
     if (response.status === 404 && data.error?.type === "not_found_error") {
@@ -208,12 +219,12 @@ async function testNotFound() {
 }
 
 async function testInvalidAuth() {
-  console.log("\n--- Testing Invalid API Key Handler ---");
   // skip auth test if in development mode (it's bypassed anyway)
   if (process.env.NODE_ENV === "development") {
-    console.log("⚠️ Skipping auth test in development mode (API key check is bypassed).");
+    console.log("\n⚠️  [Bypassed] --- Testing Invalid API Key Handler --- (API key check is disabled in development mode)");
     return;
   }
+  console.log("\n--- Testing Invalid API Key Handler ---");
   const url = `${BASE_URL}/v1/chat/completions`;
   try {
     const response = await fetch(url, {
@@ -244,10 +255,7 @@ async function testValidationErrors() {
   try {
     const response = await fetch(url, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "ERKUT-API-KEY": process.env.ERKUT_API_KEY || "dummy",
-      },
+      headers: GLOBAL_HEADERS,
       body: JSON.stringify({ model: "gpt-4" }), // missing messages
     });
     const data = await response.json();
@@ -268,7 +276,7 @@ async function testModelsEndpoint() {
   console.log("\n--- Testing GET /v1/models (n8n compat) ---");
   try {
     const response = await fetch(`${BASE_URL}/v1/models`, {
-      headers: { "Authorization": `Bearer ${process.env.ERKUT_API_KEY || "dummy"}` },
+      headers: GLOBAL_HEADERS,
     });
     const data = await response.json();
     console.log(`Status: ${response.status}`);
@@ -289,7 +297,7 @@ async function testV1Root() {
   console.log("\n--- Testing GET /v1/ (n8n compat) ---");
   try {
     const response = await fetch(`${BASE_URL}/v1/`, {
-      headers: { "Authorization": `Bearer ${process.env.ERKUT_API_KEY || "dummy"}` },
+      headers: GLOBAL_HEADERS,
     });
     const data = await response.json();
     console.log(`Status: ${response.status}`);
@@ -303,6 +311,47 @@ async function testV1Root() {
   catch (error) {
     console.error("❌ Error:", error.message);
   }
+}
+
+async function testStressConcurrency(count = 5) {
+  console.log(`\n--- Stress Testing Concurrency (${count} requests) ---`);
+  const url = `${BASE_URL}/api/prompt`;
+  const prompts = [
+    "What is the capital of France?",
+    "Tell me a joke.",
+    "Define AI.",
+    "How does a rocket work?",
+    "Who was Albert Einstein?",
+  ];
+
+  const sendRequest = async (id, prompt) => {
+    console.log(`[Req #${id}] Sending...`);
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: GLOBAL_HEADERS,
+        body: JSON.stringify({ prompt, options: { reason: false } }),
+      });
+      const data = await res.json();
+      console.log(`[Req #${id}] Status: ${res.status}`);
+      return data;
+    }
+    catch (err) {
+      console.error(`[Req #${id}] Error: ${err.message}`);
+      return null;
+    }
+  };
+
+  const start = Date.now();
+  const limitedPrompts = prompts.slice(0, count);
+  // If count > prompts.length, repeat some
+  while (limitedPrompts.length < count) {
+    limitedPrompts.push(prompts[limitedPrompts.length % prompts.length]);
+  }
+
+  await Promise.all(limitedPrompts.map((p, i) => sendRequest(i + 1, p)));
+  const duration = (Date.now() - start) / 1000;
+  console.log(`\n🏁 Stress test finished in ${duration}s`);
 }
 
 async function runTests() {
@@ -331,6 +380,9 @@ async function runTests() {
 
   await waitForTimeout(1000);
   await testV1Root();
+
+  await waitForTimeout(2000);
+  await testStressConcurrency(5);
 }
 
 runTests();

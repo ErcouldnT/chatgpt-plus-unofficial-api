@@ -7,6 +7,7 @@ dotenv.config();
 export function verifyApiKey(req, res, next) {
   // skip API key verification in development mode
   if (process.env.NODE_ENV === "development") {
+    console.log("🔓 [Auth] Development mode: Bypassing API key verification.");
     return next();
   }
   // Check for custom header or standard Authorization Bearer header
