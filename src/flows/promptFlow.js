@@ -21,8 +21,14 @@ export async function promptWithOptions(page, options, prompt, systemPrompt) {
   await page.goto(url, { waitUntil: "domcontentloaded", timeout: 120_000 }); // wait for DOM to load for a 120sec
 
   // Toggle modes if requested
-  console.warn("☰ Toggle Prompt tools...");
-  await page.locator("button::-p-aria(Choose tool)").click();
+  if (reason || search) {
+    console.warn("☰ Toggle Prompt tools...");
+    try {
+      await page.locator("button::-p-aria(Choose tool)").click();
+    } catch (e) {
+      console.warn("⚠️ Could not find 'Choose tool' button, skipping tool toggle.");
+    }
+  }
 
   if (reason) {
     console.warn("🔍 Enabling Reason mode...");

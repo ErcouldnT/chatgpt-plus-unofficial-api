@@ -8,8 +8,16 @@ export function verifyApiKey(req, res, next) {
   if (process.env.NODE_ENV === "development") {
     return next();
   }
+  // Check for custom header or standard Authorization Bearer header
   const clientKey = req.header("ERKUT-API-KEY");
-  if (!clientKey || clientKey !== process.env.ERKUT_API_KEY) {
+  const authHeader = req.header("Authorization");
+
+  let token = clientKey;
+  if (!token && authHeader && authHeader.startsWith("Bearer ")) {
+    token = authHeader.substring(7);
+  }
+
+  if (!token || token !== process.env.ERKUT_API_KEY) {
     return res.status(401).json({ error: "invalid api key" });
   }
   next();
