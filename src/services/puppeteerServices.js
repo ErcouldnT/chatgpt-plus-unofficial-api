@@ -60,15 +60,21 @@ export async function initializeBrowser() {
     console.warn("⏳ Waiting 5 seconds for browser to stabilize...");
     await new Promise(r => setTimeout(r, 5000));
     console.warn("Puppeteer browser initialized.");
+
+    // Handle browser disconnection
+    browserInstance.on("disconnected", () => {
+      console.warn("❌ Puppeteer browser disconnected! Clearing instance...");
+      browserInstance = null;
+    });
   }
   return browserInstance;
 }
 
-export function getBrowser() {
-  if (!browserInstance) {
-    throw new Error(
-      "Browser has not been initialized. Call initializeBrowser() first, typically at server startup.",
-    );
+export async function getBrowser() {
+  if (!browserInstance || !browserInstance.connected) {
+    console.warn("⚠️ Browser instance missing or disconnected. Re-initializing...");
+    browserInstance = null;
+    await initializeBrowser();
   }
   return browserInstance;
 }

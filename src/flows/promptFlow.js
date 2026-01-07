@@ -71,7 +71,7 @@ export async function promptWithOptions(page, options, prompt, systemPrompt) {
   console.warn("✏️ Typing and submitting prompt...");
   const finalPrompt = systemPrompt ? `${systemPrompt} | Prompt: ${prompt}` : prompt;
 
-  await editor.type(finalPrompt, { delay: 10 });
+  await editor.type(finalPrompt);
   await editor.press("Enter");
 
   // Grab the latest article ID

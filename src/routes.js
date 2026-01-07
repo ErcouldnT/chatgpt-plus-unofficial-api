@@ -6,6 +6,7 @@ import openaiRouter from "./router/openai.js";
 import assistantsRouter from "./router/assistants.js";
 import promptRouter from "./router/prompt.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
+import { notFound } from "./middlewares/notFound.js";
 
 const app = express();
 
@@ -24,6 +25,9 @@ app.use("/v1", verifyApiKey, assistantsRouter);
 app.get("/", (req, res) => {
   res.send("<html><body><h1>Server is up and running...</h1></body></html>");
 });
+
+// Handle undefined routes
+app.use(notFound);
 
 // Final error handler
 app.use(errorHandler);

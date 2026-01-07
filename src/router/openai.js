@@ -2,10 +2,11 @@ import { randomUUID } from "node:crypto";
 import express from "express";
 import { promptWithOptions } from "../flows/promptFlow.js";
 import { getBrowser } from "../services/puppeteerServices.js";
+import { AppError } from "../utils/errors.js";
 
 const openaiRouter = express.Router();
 
-openaiRouter.post("/chat/completions", async (req, res) => {
+openaiRouter.post("/chat/completions", async (req, res, next) => {
   console.warn("POST:/v1/chat/completions | Received request");
 
   try {
@@ -13,27 +14,13 @@ openaiRouter.post("/chat/completions", async (req, res) => {
 
     // Validate messages
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
-      return res.status(400).json({
-        error: {
-          message: "'messages' is required and must be a non-empty array.",
-          type: "invalid_request_error",
-          param: "messages",
-          code: null,
-        },
-      });
+      throw new AppError("'messages' is required and must be a non-empty array.", 400, "invalid_request_error", "messages");
     }
 
     // Extract the prompt from the last user message
-    const lastUserMessage = messages.reverse().find(m => m.role === "user");
+    const lastUserMessage = [...messages].reverse().find(m => m.role === "user");
     if (!lastUserMessage) {
-      return res.status(400).json({
-        error: {
-          message: "No message with role 'user' found.",
-          type: "invalid_request_error",
-          param: "messages",
-          code: null,
-        },
-      });
+      throw new AppError("No message with role 'user' found.", 400, "invalid_request_error", "messages");
     }
 
     const start = Date.now();
@@ -53,7 +40,7 @@ openaiRouter.post("/chat/completions", async (req, res) => {
 
     console.warn(`Attempting to send prompt to ChatGPT. Model: ${model}, Options:`, options);
 
-    const browser = getBrowser();
+    const browser = await getBrowser();
     const page = await browser.newPage();
 
     let result;
@@ -104,15 +91,7 @@ openaiRouter.post("/chat/completions", async (req, res) => {
     res.json(response);
 
   } catch (error) {
-    console.error("Error processing OpenAI request:", error);
-    res.status(500).json({
-      error: {
-        message: error.message || "Internal Server Error",
-        type: "server_error",
-        param: null,
-        code: null,
-      },
-    });
+    next(error);
   }
 });
 

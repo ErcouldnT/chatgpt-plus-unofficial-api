@@ -19,7 +19,7 @@ async function startServer() {
   try {
     // Initialize Puppeteer browser
     await initializeBrowser();
-    const browser = getBrowser();
+    const browser = await getBrowser();
     const page = await browser.newPage();
     try {
       if (await isChatGPTLoggedIn(page)) {

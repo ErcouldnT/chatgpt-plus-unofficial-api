@@ -1,5 +1,6 @@
 import process from "node:process";
 import dotenv from "dotenv";
+import { AppError } from "../utils/errors.js";
 
 dotenv.config();
 
@@ -18,7 +19,7 @@ export function verifyApiKey(req, res, next) {
   }
 
   if (!token || token !== process.env.ERKUT_API_KEY) {
-    return res.status(401).json({ error: "invalid api key" });
+    return next(new AppError("Invalid API key", 401, "invalid_request_error"));
   }
   next();
 }

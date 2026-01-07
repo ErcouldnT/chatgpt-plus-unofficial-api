@@ -1,3 +1,5 @@
+import { waitForTimeout } from "./utils/helpers.js";
+
 const BASE_URL = "http://localhost:3001";
 
 async function testOpenAIChat() {
@@ -93,7 +95,7 @@ async function testAssistantsAPI() {
         let currentRun = run;
         while (currentRun.status === "queued" || currentRun.status === "in_progress") {
             process.stdout.write(".");
-            await new Promise(r => setTimeout(r, 2000));
+            await waitForTimeout(2000);
             const pollRes = await fetch(`${urlBase}/threads/${thread.id}/runs/${run.id}`);
             currentRun = await pollRes.json();
         }
@@ -107,7 +109,7 @@ async function testAssistantsAPI() {
 
         // 6. Test Continuity (Turn 2)
         console.log("\n--- Testing Continuity (Second Turn) ---");
-        await new Promise(r => setTimeout(r, 3000));
+        await waitForTimeout(3000);
         await fetch(`${urlBase}/threads/${thread.id}/messages`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -123,7 +125,7 @@ async function testAssistantsAPI() {
 
         while (run2.status === "queued" || run2.status === "in_progress") {
             process.stdout.write(".");
-            await new Promise(r => setTimeout(r, 2000));
+            await waitForTimeout(2000);
             const poll2Res = await fetch(`${urlBase}/threads/${thread.id}/runs/${run2.id}`);
             run2 = await poll2Res.json();
         }
@@ -132,7 +134,14 @@ async function testAssistantsAPI() {
         const msgs2Res = await fetch(`${urlBase}/threads/${thread.id}/messages`);
         const msgs2 = await msgs2Res.json();
         const lastMsg2 = msgs2.data[msgs2.data.length - 1];
-        console.log("✅ Continuity Response:", lastMsg2.content[0].text.value);
+        const finalResponse2 = lastMsg2.content[0].text.value;
+        console.log("✅ Continuity Response:", finalResponse2);
+
+        if (finalResponse2.includes("8888")) {
+            console.log("🌟 TEST SUCCESS: Conversation memory is working!");
+        } else {
+            console.error("❌ TEST ERROR: Assistant forgot the secret code!");
+        }
 
     } catch (error) {
         console.error("❌ Error:", error.message);
@@ -171,14 +180,96 @@ async function testLegacyPrompt() {
     }
 }
 
+async function testNotFound() {
+    console.log("\n--- Testing 404 Not Found Handler ---");
+    const url = `${BASE_URL}/v1/invalid-route-name`;
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        console.log(`Status: ${response.status}`);
+        if (response.status === 404 && data.error?.type === "not_found_error") {
+            console.log("✅ Success: Correct 404 JSON response.");
+        } else {
+            console.log("❌ Failure: Unexpected 404 response.", JSON.stringify(data, null, 2));
+        }
+    } catch (error) {
+        console.error("❌ Error:", error.message);
+    }
+}
+
+async function testInvalidAuth() {
+    console.log("\n--- Testing Invalid API Key Handler ---");
+    // skip auth test if in development mode (it's bypassed anyway)
+    if (process.env.NODE_ENV === "development") {
+        console.log("⚠️ Skipping auth test in development mode (API key check is bypassed).");
+        return;
+    }
+    const url = `${BASE_URL}/v1/chat/completions`;
+    try {
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer invalid_key_here"
+            },
+            body: JSON.stringify({ model: "gpt-4", messages: [] })
+        });
+        const data = await response.json();
+        console.log(`Status: ${response.status}`);
+        if (response.status === 401 && data.error?.type === "invalid_request_error") {
+            console.log("✅ Success: Correct 401 JSON response.");
+        } else {
+            console.log("❌ Failure: Unexpected 401 response.", JSON.stringify(data, null, 2));
+        }
+    } catch (error) {
+        console.error("❌ Error:", error.message);
+    }
+}
+
+async function testValidationErrors() {
+    console.log("\n--- Testing Validation Errors (Missing Messages) ---");
+    const url = `${BASE_URL}/v1/chat/completions`;
+    try {
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "ERKUT-API-KEY": process.env.ERKUT_API_KEY || "dummy"
+            },
+            body: JSON.stringify({ model: "gpt-4" }) // missing messages
+        });
+        const data = await response.json();
+        console.log(`Status: ${response.status}`);
+        if (response.status === 400 && data.error?.type === "invalid_request_error") {
+            console.log("✅ Success: Correct 400 Validation response.");
+        } else {
+            console.log("❌ Failure: Unexpected 400 response.", JSON.stringify(data, null, 2));
+        }
+    } catch (error) {
+        console.error("❌ Error:", error.message);
+    }
+}
+
 async function runTests() {
     await testOpenAIChat();
-    await new Promise(r => setTimeout(r, 2000));
+
+    await waitForTimeout(2000);
     await testSystemPrompt();
-    await new Promise(r => setTimeout(r, 2000));
+
+    await waitForTimeout(2000);
     await testAssistantsAPI();
-    await new Promise(r => setTimeout(r, 2000));
+
+    await waitForTimeout(2000);
     await testLegacyPrompt();
+
+    await waitForTimeout(1000);
+    await testNotFound();
+
+    await waitForTimeout(1000);
+    await testInvalidAuth();
+
+    await waitForTimeout(1000);
+    await testValidationErrors();
 }
 
 runTests();

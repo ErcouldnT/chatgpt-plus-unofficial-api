@@ -38,7 +38,7 @@ export async function processRun(runId) {
 
         console.log(`[Processor] Processing run ${runId} | prompt: "${prompt}" | threadId: ${options.threadId || 'NEW'}`);
 
-        const browser = getBrowser();
+        const browser = await getBrowser();
         const page = await browser.newPage();
 
         try {
