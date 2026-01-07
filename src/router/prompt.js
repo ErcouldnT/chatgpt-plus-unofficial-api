@@ -12,7 +12,7 @@ promptRouter.post("/", async (req, res) => {
   console.warn("POST:/api/prompt | In prompt post request...");
 
   // retrieve input passed from client
-  const { prompt, options = {}, systemPrompt } = req.body; // defaults options to null obj
+  const { prompt, options = {}, systemPrompt = process.env.SYSTEM_PROMPT } = req.body; // defaults options to null obj
 
   const browser = getBrowser();
   const page = await browser.newPage();

@@ -39,7 +39,7 @@ openaiRouter.post("/chat/completions", async (req, res) => {
     const start = Date.now();
     const prompt = lastUserMessage.content;
     const systemPromptMessage = messages.find(m => m.role === "system");
-    const systemPrompt = systemPromptMessage ? systemPromptMessage.content : undefined;
+    const systemPrompt = systemPromptMessage ? systemPromptMessage.content : process.env.SYSTEM_PROMPT;
 
     // Map model to capabilities
     // format: o1 -> reason: true
@@ -55,7 +55,7 @@ openaiRouter.post("/chat/completions", async (req, res) => {
 
     const browser = getBrowser();
     const page = await browser.newPage();
-    
+
     let result;
     try {
       result = await promptWithOptions(page, options, prompt, systemPrompt);
@@ -64,11 +64,11 @@ openaiRouter.post("/chat/completions", async (req, res) => {
     }
 
     // response is { response: string, cleanedResponse: string, threadId: string, ... }
-    
+
     // Construct standard OpenAI response
     const completionId = `chatcmpl-${randomUUID()}`;
     const created = Math.floor(Date.now() / 1000);
-    
+
     // We use cleanedResponse for better text parsing, or response if cleaned is null
     const finalContent = result.cleanedResponse || result.response || "";
 
@@ -100,7 +100,7 @@ openaiRouter.post("/chat/completions", async (req, res) => {
     // but sticking to spec is safer. The user can look at system_fingerprint.
     // Also adding a custom header for threadId might be useful.
     res.setHeader("X-ChatGPT-Thread-Id", result.threadId || "");
-    
+
     res.json(response);
 
   } catch (error) {
