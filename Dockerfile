@@ -16,6 +16,8 @@ COPY . .
 RUN mkdir -p /app/chrome-user-data
 VOLUME ["/app/chrome-user-data"]
 
+EXPOSE 3001
+
 # run as chrome user instead of root for better security
 USER chrome
 

@@ -35,8 +35,8 @@ async function startServer() {
       await page.close();
     }
     const PORT = process.env.PORT || 3001;
-    server.listen(PORT, () => {
-      console.warn(`📺 Server is running on http://localhost:${PORT}`);
+    server.listen(PORT, "0.0.0.0", () => {
+      console.warn(`📺 Server is running on http://0.0.0.0:${PORT}`);
       console.warn(
         "🌐 Puppeteer service is active, browser is ready and authenticated for API routes.\n",
       );
