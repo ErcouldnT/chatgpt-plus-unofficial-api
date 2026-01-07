@@ -7,6 +7,41 @@ import { AppError } from "../utils/errors.js";
 
 const openaiRouter = express.Router();
 
+/**
+ * 1. GET /v1/models (Required for n8n/standard clients validation)
+ */
+openaiRouter.get("/models", (req, res) => {
+  res.json({
+    object: "list",
+    data: [
+      { id: "gpt-4", object: "model", created: 1687882411, owned_by: "openai" },
+      { id: "gpt-4o", object: "model", created: 1715367049, owned_by: "openai" },
+      { id: "gpt-3.5-turbo", object: "model", created: 1677610602, owned_by: "openai" },
+      { id: "o1", object: "model", created: 1726127435, owned_by: "openai" },
+      { id: "gpt-5", object: "model", created: 1735689600, owned_by: "openai" },
+      { id: "reason", object: "model", created: 1726127435, owned_by: "openai" },
+      { id: "search", object: "model", created: 1730383180, owned_by: "openai" },
+    ],
+  });
+});
+
+/**
+ * 2. GET /v1/ (Consistent with OpenAI's 'Invalid URL' response for root)
+ */
+openaiRouter.get("/", (req, res) => {
+  res.status(404).json({
+    error: {
+      message: "Invalid URL (GET /v1/)",
+      type: "invalid_request_error",
+      param: null,
+      code: null,
+    },
+  });
+});
+
+/**
+ * 3. POST /v1/chat/completions
+ */
 openaiRouter.post("/chat/completions", async (req, res, next) => {
   console.log("POST:/v1/chat/completions | Received request");
 

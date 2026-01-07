@@ -222,7 +222,7 @@ async function testInvalidAuth() {
         "Content-Type": "application/json",
         "Authorization": "Bearer invalid_key_here",
       },
-      body: JSON.stringify({ model: "gpt-4", messages: [] }),
+      body: JSON.stringify({ model: "gpt-4", messages: [{ role: "user", content: "test" }] }),
     });
     const data = await response.json();
     console.log(`Status: ${response.status}`);
@@ -264,6 +264,47 @@ async function testValidationErrors() {
   }
 }
 
+async function testModelsEndpoint() {
+  console.log("\n--- Testing GET /v1/models (n8n compat) ---");
+  try {
+    const response = await fetch(`${BASE_URL}/v1/models`, {
+      headers: { "Authorization": `Bearer ${process.env.ERKUT_API_KEY || "dummy"}` },
+    });
+    const data = await response.json();
+    console.log(`Status: ${response.status}`);
+    if (response.status === 200 && data.object === "list") {
+      console.log("✅ Success: Models list returned correctly.");
+      console.log("Models found:", data.data.map(m => m.id).join(", "));
+    }
+    else {
+      console.log("❌ Failure:", JSON.stringify(data, null, 2));
+    }
+  }
+  catch (error) {
+    console.error("❌ Error:", error.message);
+  }
+}
+
+async function testV1Root() {
+  console.log("\n--- Testing GET /v1/ (n8n compat) ---");
+  try {
+    const response = await fetch(`${BASE_URL}/v1/`, {
+      headers: { "Authorization": `Bearer ${process.env.ERKUT_API_KEY || "dummy"}` },
+    });
+    const data = await response.json();
+    console.log(`Status: ${response.status}`);
+    if (response.status === 404 && data.error?.message.includes("Invalid URL")) {
+      console.log("✅ Success: Correct 404 JSON error for root.");
+    }
+    else {
+      console.log("❌ Failure:", JSON.stringify(data, null, 2));
+    }
+  }
+  catch (error) {
+    console.error("❌ Error:", error.message);
+  }
+}
+
 async function runTests() {
   await testOpenAIChat();
 
@@ -284,6 +325,12 @@ async function runTests() {
 
   await waitForTimeout(1000);
   await testValidationErrors();
+
+  await waitForTimeout(1000);
+  await testModelsEndpoint();
+
+  await waitForTimeout(1000);
+  await testV1Root();
 }
 
 runTests();
