@@ -354,6 +354,49 @@ async function testStressConcurrency(count = 5) {
   console.log(`\n🏁 Stress test finished in ${duration}s`);
 }
 
+
+async function testImageUpload() {
+  console.log("\n--- Testing Image Upload (Multimodal) ---");
+  const url = `${BASE_URL}/v1/chat/completions`;
+  const body = {
+    model: "gpt-4o",
+    messages: [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: "What is in this image?" },
+          {
+            type: "image_url",
+            image_url: {
+              url: "https://upload.wikimedia.org/wikipedia/en/a/a6/Pok%C3%A9mon_Pikachu_art.png",
+            },
+          },
+        ],
+      },
+    ],
+  };
+
+  try {
+    const start = Date.now();
+    const response = await fetch(url, {
+      method: "POST",
+      headers: GLOBAL_HEADERS,
+      body: JSON.stringify(body),
+    });
+    const data = await response.json();
+    const duration = (Date.now() - start) / 1000;
+
+    console.log(`Status: ${response.status} (${duration}s)`);
+    if (data.choices && data.choices[0]?.message?.content) {
+      console.log("✅ Success. Response snippet:", `${data.choices[0].message.content.slice(0, 100)}...`);
+    } else {
+      console.log("❌ Failure:", JSON.stringify(data, null, 2));
+    }
+  } catch (error) {
+    console.error("❌ Error:", error.message);
+  }
+}
+
 async function runTests() {
   await testOpenAIChat();
 
@@ -380,6 +423,9 @@ async function runTests() {
 
   await waitForTimeout(1000);
   await testV1Root();
+
+  await waitForTimeout(2000);
+  await testImageUpload();
 
   await waitForTimeout(2000);
   await testStressConcurrency(5);

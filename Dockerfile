@@ -13,7 +13,7 @@ RUN npm ci
 COPY . .
 
 # create a volume for Chrome user data if needed
-RUN mkdir -p /app/chrome-user-data
+RUN mkdir -p /app/chrome-user-data && chown -R chrome:chrome /app/chrome-user-data
 VOLUME ["/app/chrome-user-data"]
 
 EXPOSE 3001

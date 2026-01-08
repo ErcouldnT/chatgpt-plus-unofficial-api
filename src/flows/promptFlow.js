@@ -11,7 +11,7 @@ import { htmlResponseToText, waitForTimeout } from "../utils/helpers.js";
  * @param {string} prompt                    - The user’s prompt
  * @returns {Promise<string|null>}           - The completed response text, or null if none received
  */
-export async function promptWithOptions(page, options, prompt, systemPrompt) {
+export async function promptWithOptions(page, options, prompt, systemPrompt, images = []) {
   const { reason, threadId } = options;
 
   // Navigate: reuse existing thread or start fresh
@@ -52,6 +52,71 @@ export async function promptWithOptions(page, options, prompt, systemPrompt) {
     }
   }
   */
+
+  // Validate selectors before proceeding
+  // We'll trust the plan: input[type="file"]
+  if (images && images.length > 0) {
+    console.log(`📷 Prepare to upload ${images.length} images...`);
+    const tempDir = os.tmpdir();
+    const uploadedFilePaths = [];
+
+    try {
+      // 1. Download/Save all images
+      for (let i = 0; i < images.length; i++) {
+        const img = images[i];
+        const ext = img.startsWith("data:image/png") ? ".png" : ".jpg"; // simple heuristic
+        const filename = `chatgpt_upload_${Date.now()}_${i}${ext}`;
+        const filepath = path.join(tempDir, filename);
+
+        if (img.startsWith("http")) {
+          console.log(`   ⬇️ Downloading image ${i + 1}...`);
+          await downloadImage(img, filepath);
+        }
+        else if (img.startsWith("data:")) {
+          console.log(`   💾 Saving base64 image ${i + 1}...`);
+          const base64Data = img.split(",")[1];
+          await saveBase64Image(base64Data, filepath);
+        }
+        else {
+          console.warn(`   ⚠️ Unrecognized image format: ${img.substring(0, 20)}...`);
+          continue;
+        }
+        uploadedFilePaths.push(filepath);
+      }
+
+      // 2. Upload to ChatGPT
+      if (uploadedFilePaths.length > 0) {
+        // Try to find the file input
+        console.log("   📤 Uploading to file input...");
+        const fileInput = await page.$("input[type='file']");
+        if (fileInput) {
+          await fileInput.uploadFile(...uploadedFilePaths);
+          console.log("   ✅ Upload command sent.");
+
+          // 3. Wait for upload processing (look for thumbnail or some visual indicator)
+          // Simple heuristic: wait for the thumbnail container to appear.
+          // Usually a div with class 'relative' containing an img or similar inside the composer.
+          // We'll give it a few seconds to stabilize.
+          await new Promise(r => setTimeout(r, 3000));
+        }
+        else {
+          console.error("   ❌ File input not found! Skipping image upload.");
+        }
+      }
+    }
+    catch (err) {
+      console.error("   ❌ Image upload failed:", err);
+    }
+    finally {
+      // 4. Cleanup temp files
+      for (const p of uploadedFilePaths) {
+        try {
+          await fs.promises.unlink(p);
+        }
+        catch (e) { /* ignore */ }
+      }
+    }
+  }
 
   // Wait for editor to be ready
   const editor = await page.waitForSelector("#prompt-textarea");
@@ -150,6 +215,14 @@ export async function promptWithOptions(page, options, prompt, systemPrompt) {
       );
 
       if (text === previous) {
+        // Check for transient states
+        console.log(`🔎 [Stability Check] Text: ${JSON.stringify(text)}`);
+        const transientKeywords = ["Analyzing", "Reading", "Creating", "Searching", "Generating", "Thinking"];
+        if (transientKeywords.some(keyword => text.startsWith(keyword))) {
+          console.log("⏳ Transient state detected. Continuing poll...");
+          continue;
+        }
+
         // break the polling if the entire response is returned and stabilized
         finalText = text;
         break;
@@ -195,4 +268,21 @@ export async function promptWithOptions(page, options, prompt, systemPrompt) {
     response: finalText,
     cleanedResponse: cleaned,
   };
+}
+
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { pipeline } from "node:stream/promises";
+
+async function downloadImage(url, filepath) {
+  const response = await fetch(url);
+  if (!response.ok)
+    throw new Error(`Failed to download image: ${response.statusText}`);
+  await pipeline(response.body, fs.createWriteStream(filepath));
+}
+
+async function saveBase64Image(base64Data, filepath) {
+  const buffer = Buffer.from(base64Data, "base64");
+  await fs.promises.writeFile(filepath, buffer);
 }

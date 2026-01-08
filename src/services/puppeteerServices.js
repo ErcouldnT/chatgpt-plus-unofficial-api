@@ -1,11 +1,10 @@
 import { Buffer } from "node:buffer";
 import path from "node:path";
 import process from "node:process";
-import dotenv from "dotenv";
+
 import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 
-dotenv.config();
 
 puppeteer.use(StealthPlugin());
 
@@ -71,7 +70,8 @@ export async function initializeBrowser() {
 }
 
 export async function getBrowser() {
-  if (!browserInstance || !browserInstance.connected) {
+
+  if (!browserInstance || !browserInstance.isConnected()) {
     console.log("⚠️ Browser instance missing or disconnected. Re-initializing...");
     browserInstance = null;
     await initializeBrowser();

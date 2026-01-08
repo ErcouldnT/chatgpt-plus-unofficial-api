@@ -1,8 +1,7 @@
 import process from "node:process";
-import dotenv from "dotenv";
 import { waitForTimeout } from "../utils/helpers.js";
 
-dotenv.config();
+
 
 const { OPENAI_EMAIL, OPENAI_PASSWORD } = process.env;
 

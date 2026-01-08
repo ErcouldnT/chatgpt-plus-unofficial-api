@@ -53,13 +53,30 @@ openaiRouter.post("/chat/completions", async (req, res, next) => {
       throw new AppError("'messages' is required and must be a non-empty array.", 400, "invalid_request_error", "messages");
     }
 
-    // Extract the prompt from the last user message
+    // Extract the prompt and images from the last user message
     const lastUserMessage = [...messages].reverse().find(m => m.role === "user");
     if (!lastUserMessage) {
       throw new AppError("No message with role 'user' found.", 400, "invalid_request_error", "messages");
     }
 
-    const prompt = lastUserMessage.content;
+    let prompt = "";
+    const images = [];
+
+    if (Array.isArray(lastUserMessage.content)) {
+      for (const part of lastUserMessage.content) {
+        if (part.type === "text") {
+          prompt += `${part.text}\n`;
+        }
+        else if (part.type === "image_url") {
+          images.push(part.image_url.url);
+        }
+      }
+      prompt = prompt.trim();
+    }
+    else {
+      prompt = lastUserMessage.content;
+    }
+
     const systemPromptMessage = messages.find(m => m.role === "system");
     const systemPrompt = systemPromptMessage ? systemPromptMessage.content : process.env.SYSTEM_PROMPT;
 
@@ -80,7 +97,7 @@ openaiRouter.post("/chat/completions", async (req, res, next) => {
 
     let result;
     try {
-      result = await promptWithOptions(page, options, prompt, systemPrompt);
+      result = await promptWithOptions(page, options, prompt, systemPrompt, images);
     }
     finally {
       await page.close();

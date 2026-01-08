@@ -11,6 +11,7 @@
 -   **Tools Support**: Automates "Search" and "Reasoning" (O1) modes.
 -   **Robust Login**: Supports email/password login and **cookie-based session persistence** to bypass CAPTCHAs.
 -   **System Prompts**: Supports system prompts via API request or global environment variable.
+-   **Multimodal Support**: Send text and images (URL or Base64) in a single request.
 
 ## 🛠️ Setup Guide
 
@@ -69,10 +70,20 @@ Compatible with standard OpenAI clients.
 **Body**:
 ```json
 {
-  "model": "gpt-4",
+  "model": "gpt-4o",
   "messages": [
-    { "role": "system", "content": "You are a pirate." },
-    { "role": "user", "content": "Hello!" }
+    {
+      "role": "user",
+      "content": [
+        { "type": "text", "text": "What is in this image?" },
+        {
+          "type": "image_url",
+          "image_url": {
+            "url": "https://upload.wikimedia.org/wikipedia/en/a/a6/Pok%C3%A9mon_Pikachu_art.png"
+          }
+        }
+      ]
+    }
   ]
 }
 ```
