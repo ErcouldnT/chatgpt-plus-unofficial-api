@@ -117,7 +117,8 @@ Compatible with the OpenAI Assistants spec. Useful for n8n "OpenAI Assistant" no
 **Body**:
 ```json
 {
-  "prompt": "What is the capital of Turkey?",
+  "prompt": "What is in this image?",
+  "images": ["https://example.com/image.png"],
   "systemPrompt": "Optional override for system prompt",
   "options": {
     "search": false,
@@ -126,6 +127,9 @@ Compatible with the OpenAI Assistants spec. Useful for n8n "OpenAI Assistant" no
   }
 }
 ```
+
+> [!NOTE]
+> The `images` array supports both public URLs and Base64 data strings (e.g., `data:image/png;base64,...`).
 
 ## 🧪 Testing
 
